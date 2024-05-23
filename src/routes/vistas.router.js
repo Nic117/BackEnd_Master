@@ -15,7 +15,7 @@ router.get('/', async (req, res) => {
         res.setHeader('Content-Type', 'application/json');
         return res.status(500).json(
             {
-                error: `Error inesperado en el servidor - Intente más tarde, o contacte a su administrador`,
+                error: `Error interno servidor`,
             }
         )
     }
@@ -31,7 +31,7 @@ router.get('/realtimeproducts', async (req, res) => {
         res.setHeader('Content-Type', 'application/json');
         return res.status(500).json(
             {
-                error: `Error inesperado en el servidor - Intente más tarde, o contacte a su administrador`,
+                error: `Error interno servidor`,
             }
         )
     }
@@ -118,7 +118,7 @@ router.get("/products", async (req, res) => {
         }
 
         if (requestedPage > products.totalPages) {
-            return res.status(400).json({ error: "Lo sentimos, el sitio aún no cuenta con tantas páginas" })
+            return res.status(400).json({ error: "final sitio" })
         }
 
         return res.render("products", {
@@ -156,22 +156,25 @@ router.get("/carts/:cid", async (req, res) => {
     }
 })
 
-router.get('/signin', (req, res) => {
+router.get('/register', (req, res) => {
     res.setHeader('Content-Type', 'text/html');
-    let {error}= req.query
-    res.status(200).render('signin', {error})
+    let { error } = req.query
+    res.status(200).render('register', { error })
 })
 
 router.get('/login', (req, res) => {
     res.setHeader('Content-Type', 'text/html');
-    let {error}= req.query
-    res.status(200).render('login', {error})
+    let { error, message } = req.query
+
+    res.status(200).render('login', { error, message, login: req.session.user })
 })
 
 router.get('/profile', auth, (req, res) => {
     res.setHeader('Content-Type', 'text/html');
     res.status(200).render('profile', {
-        user: req.session.user
+        user: req.session.user,
+        login: req.session.user
     })
 })
+
 

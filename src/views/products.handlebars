@@ -11,8 +11,9 @@
    <h2>Productos</h2>
    <hr><br>{{>menu}}<br>
    {{#if user}}
-       <p><strong>Bienvenid@ {{user.first_name}}</strong></p>
+       <p><strong>Bienvenido: {{user.first_name}}</strong></p>
    {{/if}}
+  <h3>Categoría</h3>   
    <ul name="" id="">
        <li><a href="/products">Todos</a></li>
        {{#each categories}}
