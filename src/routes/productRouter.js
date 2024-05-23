@@ -2,6 +2,7 @@ import { isValidObjectId } from 'mongoose';
 import { Router } from 'express';
 import { io } from "../app.js";
 import ProductManager from '../dao/ProductManagerMONGO.js';
+import { auth } from '../utils.js';
 const productManager = new ProductManager();
 export const router = Router();
 
@@ -115,7 +116,7 @@ router.get("/:pid", async (req, res) => {
     }
 });
 
-router.post("/", async (req, res) => {
+router.post("/", auth, async (req, res) => {
     let nuevoProducto
     try {
         const { title, description, price, thumbnail, code, stock, category } = req.body;
@@ -127,41 +128,25 @@ router.post("/", async (req, res) => {
             return res.status(400).json({ error: 'El precio y el stock deben ser números' })
         }
 
-        let codeRepeat
-        try {
-            codeRepeat = await productManager.getProductsBy({ code })
-        } catch (error) {
-            res.setHeader('Content-Type', 'application/json');
-            return res.status(500).json(
-                {
-                    error: `Error inesperado en el servidor - Intente más tarde, o contacte a su administrador`,
-                    detalle: `${error.message}`
-                }
-            )
-        }
-
+        const codeRepeat = await productManager.getProductsBy({ code })
         if (codeRepeat) {
             return res.status(400).json({ error: `Error, el código ${code} se está repitiendo` });
         }
+        nuevoProducto = await productManager.addProduct({ title, description, price, thumbnail, code, stock, category })
+        io.emit("newProduct", title)
+        res.setHeader('Content-Type', 'application/json');
+        return res.status(201).json(nuevoProducto);
 
-        try {
-            nuevoProducto = await productManager.addProduct({ title, description, price, thumbnail, code, stock, category })
-        } catch (error) {
-            res.setHeader('Content-Type', 'application/json');
-            return res.status(500).json(
-                {
-                    error: `Error inesperado en el servidor - Intente más tarde, o contacte a su administrador`,
-                    detalle: `${error.message}`
-                }
-            )
-        }
+
     } catch (error) {
-        res.status(500).json({ error: `Error inesperado en el servidor`, detalle: `${error.message}` });
+        res.setHeader('Content-Type', 'application/json');
+        return res.status(500).json(
+            {
+                error: `Error interno del servidor`,
+                detalle: `${error.message}`
+            }
+        )
     }
-    const productList = await productManager.getProducts();
-    io.emit("nuevoProducto", productList)
-    res.setHeader('Content-Type', 'application/json');
-    return res.status(201).json(nuevoProducto);
 })
 
 router.put("/:pid", async (req, res) => {
@@ -215,7 +200,7 @@ router.put("/:pid", async (req, res) => {
         res.setHeader('Content-Type', 'application/json');
         return res.status(500).json(
             {
-                error: `Error inesperado en el servidor - Intente más tarde, o contacte a su administrador`,
+                error: `Error interno del servidor`,
                 detalle: `${error.message}`
             }
         )
@@ -223,39 +208,35 @@ router.put("/:pid", async (req, res) => {
 });
 
 router.delete("/:pid", async (req, res) => {
-    let productoEliminado
     let id = req.params.pid;
 
     if (!isValidObjectId(id)) {
-        res.setHeader('Content-Type', 'application/json');
         return res.status(400).json({ error: `Ingrese un ID válido de MONGODB` })
     }
 
     const product = await productManager.getProductsBy({ _id: id });
-    if (product) {
-        res.status(200).json(product);
-    } else {
+    if (!product) {
         return res.status(404).json({ error: `No existe un producto con el ID: ${id}` });
     }
     try {
-        productoEliminado = await productManager.deleteProduct(id);
-        if (productoEliminado.deletedCount > 0) {
-            res.setHeader('Content-Type', 'application/json');
+        const deletedProduct = await productManager.deleteProduct(id);
+        if (deletedProduct.deletedCount > 0) {
+            let products = await productManager.getProducts();
+            io.emit("deletedProduct", products);
             return res.status(200).json({ payload: `El producto con id ${id} fue eliminado` });
         } else {
-            res.setHeader('Content-Type', 'application/json');
             return res.status(400).json({ error: `No existe ningun producto con el id ${id}` })
         }
 
     } catch (error) {
-        res.setHeader('Content-Type', 'application/json');
         return res.status(500).json(
             {
-                error: `Error inesperado en el servidor - Intente más tarde, o contacte a su administrador`,
+                error: `Error interno del servidor`,
                 detalle: `${error.message}`
             }
         )
 
     }
+
 
 })
