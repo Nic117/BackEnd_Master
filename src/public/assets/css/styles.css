@@ -1,0 +1,136 @@
+/* Estilos generales */
+body {
+    font-family: 'Roboto', sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f8f8f8;
+}
+
+h2 {
+    color: #333;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+a {
+    color: #007bff;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+#cart {
+    list-style-type: none;
+    padding: 0;
+}
+
+#cart li {
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    padding: 10px;
+    background-color: #fff;
+}
+
+hr {
+    border: 1px solid #ddd;
+    margin: 20px 0;
+}
+
+.quantity {
+    display: inline-block;
+    padding: 5px 10px;
+    background-color: #e8770c;
+    color: #fff;
+    border-radius: 20px;
+}
+
+/* Estilos específicos */
+.mensaje {
+    background-color: green;
+    color: white;
+    padding: 10px;
+    border-radius: 5px;
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.agregar-carrito-btn {
+    background-color: orange;
+    color: white;
+    padding: 10px 20px;
+    border: 2px solid orange;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+.agregar-carrito-btn:hover {
+    background-color: darkorange;
+    border-color: darkorange;
+}
+
+#sortSelect {
+    padding: 8px 16px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background-color: #fff;
+}
+
+#sortSelect:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 5px #007bff;
+}
+
+/* Estilos específicos para los productos */
+.productos-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    margin: 20px auto;
+    max-width: 1200px; /* Ancho máximo de los productos */
+}
+
+.producto {
+    width: calc(30% - 10px); /* Ancho de los productos (50% del contenedor - margen) */
+    margin-bottom: 20px;
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background-color: #fff;
+}
+
+.producto img {
+    max-width: 100%;
+    height: auto;
+    margin-bottom: 10px;
+}
+
+.producto h3 {
+    color: #333;
+    margin-top: 0;
+}
+
+.producto strong {
+    font-weight: bold;
+}
+
+.producto button {
+    background-color: orange;
+    color: white;
+    padding: 10px 20px;
+    border: 2px solid orange;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+.producto button:hover {
+    background-color: darkorange;
+    border-color: darkorange;
+}

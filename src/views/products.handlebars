@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Productos</title>
+    <link rel="stylesheet" type="text/css" href="../public/assets/css/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+   <h2>Productos</h2>
+   <hr><br>{{>menu}}<br>
+   {{#if user}}
+       <p><strong>Bienvenid@ {{user.first_name}}</strong></p>
+   {{/if}}
+   <ul name="" id="">
+       <li><a href="/products">Todos</a></li>
+       {{#each categories}}
+           <li><a href="/products?category={{this}}">{{this}}</a></li>
+       {{/each}}
+   </ul>
+   <input type="text" value="{{cart._id}}" hidden id="cart">
+
+   <div>
+       <select id="sortSelect">
+           <option selected disabled>Ordenar</option>
+           <option value="asc">Precio: Menor a Mayor</option>
+           <option value="desc">Precio: Mayor a Menor</option>
+       </select>
+   </div>
+
+   <div class="productos-container">
+       {{#each payload}}
+       <div class="producto">
+           <h3>{{title}}</h3>
+           <p>{{category}}</p>
+           <img src="{{thumbnails.[0]}}" alt="{{title}}">
+           <p>{{description}}</p>
+           <strong> ${{price}} </strong> <br><br>
+           <button class="agregar-carrito-btn" onclick="comprar('{{_id}}')">Añadir al carrito</button>
+           <button class="agregar-carrito-btn" onclick="comprar('{{_id}}')">Comprar</button>
+       </div>
+       {{/each}}
+   </div>
+   <br><br>
+
+   <a href="/products?page=1">Pág. 1</a>
+   {{#if hasPrevPage}}
+   <a href="{{prevLink}}">Ant.</a>
+   {{/if}}
+
+   {{#if hasNextPage}}
+   <a href="{{nextLink}}">Sig.</a>
+   {{/if}}
+   <a href="/products?page={{totalPages}}">Última Pág.</a>
+   <h3> Página {{page}} / {{totalPages}}</h3>
+   <a href="/carts/{{cart._id}}">Ver carrito</a>
+
+   <script src="/assets/js/products.js"></script>
+
+   <div id="productoAgregadoMensaje" class="mensaje">Producto agregado</div>
+</body>
+</html>

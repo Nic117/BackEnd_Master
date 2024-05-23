@@ -1,0 +1,46 @@
+[
+    {
+        "id": 1,
+        "status": true,
+        "title": "producto prueba",
+        "description": "Este es un producto prueba",
+        "price": 200,
+        "thumbnail": "sin imagen",
+        "code": "abc123",
+        "stock": 12,
+        "category": "consola"
+    },
+    {
+        "id": 2,
+        "status": true,
+        "price": 200,
+        "code": "abc124",
+        "stock": 25,
+        "thumbnail": "sin imagen",
+        "category": "consola",
+        "description": "Consola PlayStation 3",
+        "title": "PS3"
+    },
+    {
+        "id": 3,
+        "status": true,
+        "title": "PS4",
+        "description": "Consola PlayStation 4",
+        "price": 200,
+        "thumbnail": "sin imagen",
+        "code": "abc125",
+        "stock": 41,
+        "category": "consola"
+    },
+    {
+        "id": 4,
+        "status": true,
+        "title": "Nintendo Gameboy",
+        "description": "Consola portatil retro",
+        "price": 520,
+        "thumbnail": "sin imagen",
+        "code": "abc126",
+        "stock": 2,
+        "category": "consola"
+    }
+]

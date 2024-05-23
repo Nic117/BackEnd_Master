@@ -1,0 +1,13 @@
+<h2>Registro:</h2>
+<hr><br>{{>menu}}<br><br>
+<form action="/api/sessions/signin" method="post">
+    <input type="text" name="first_name" placeholder="Nombre">
+    <input type="text" name="last_name" placeholder="Apellido">
+    <input type="text" name="age" placeholder="Edad">
+    <input type="email" name="email" placeholder="Gmail">
+    <input type="password" name="password" placeholder="Constraseña">
+    <input type="text" name="web" value="web" hidden>
+    <br><br>
+    <input type="submit" value="Registrarse">
+
+</form>

@@ -1,0 +1,14 @@
+<h2>Login:</h2>
+<hr><br>{{>menu}}<br>
+<form action="/api/sessions/login" method="post">
+
+    {{#if error}}
+    <div style="color: rgb(230, 101, 20)">{{error}}</div>
+    {{/if}}
+    <input type="email" name="email" placeholder="Correo electronico">
+    <input type="password" name="password" placeholder="Constraseña">
+    <input type="text" name="web" value="web" hidden>
+    <br><br>
+    <input type="submit" value="Login">
+    <button><a href="/signin">Registrarse</a></button>
+</form>

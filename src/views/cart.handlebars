@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carrito de Compras</title>
+    <link rel="stylesheet" type="text/css" href="../public/assets/css/styles.css">
+</head>
+<body>
+    <h2>Carrito {{cart._id}}</h2>
+    <hr>
+    <ul id="cart">
+        {{#each cart.products}}
+        <li>
+            {{product.title}} , <br>
+            {{product.category}} <br>
+            $<strong> {{product.price}} </strong> <br>
+            Llevas <span class="quantity">{{quantity}}</span>
+        </li>
+        <hr>
+        {{/each}}
+    </ul>
+    <br><br>
+    <a href="/products">Seguir comprando</a>
+</body>
+</html>
