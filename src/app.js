@@ -5,13 +5,17 @@ import { engine } from "express-handlebars";
 import { Server } from "socket.io";
 import mongoose from "mongoose";
 import cookieParser from "cookie-parser";
+import sessions from "express-session";
+// import FileStore from "session-file-store"
+import MongoStore from "connect-mongo";
+import passport from "passport";
+import { initPassport } from "./config/passport.config.js";
 
 import { router as vistasRouter } from './routes/vistas.router.js';
 import { router as cartRouter } from './routes/cartRouter.js';
 import { router as productRouter } from './routes/productRouter.js';
-import {router as sessionsRouter} from './routes/sessionRouter.js'
+import { router as sessionsRouter } from './routes/sessionRouter.js';
 import { messageModelo } from "./dao/models/messageModelo.js";
-import sessions from "express-session";
 
 
 const PORT = 8080;
@@ -27,8 +31,25 @@ app.use(express.static(path.join(__dirname, '/public')));
 app.use(cookieParser("codercoder123"))
 app.use(sessions({
     secret: "codercoder123",
-    resave: true, saveUninitialized: true
+    resave: true,
+    saveUninitialized: true,
+    // store: new fileStore({
+    //     path: path.join(__dirname, '/sessions'),
+    //     ttl: 60 * 60,
+    //     retries: 0
+    // })
+    store: MongoStore.create({
+        ttl: 3600,
+        mongoUrl: 'mongodb+srv://nic117:codercoder123@cluster0.z9ewukb.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0',
+        dbName:"eCommerce",
+        collectionName: "sessions"
+    })
 }))
+
+initPassport()
+app.use(passport.initialize())
+app.use(passport.session())
+
 
 app.use('/', vistasRouter);
 app.use('/api/product', productRouter);
