@@ -19,7 +19,7 @@ export const validaPassword = (password, passwordHash) => bcrypt.compareSync(pas
 export const auth = (req, res, next) => {
     if (!req.session.user) {
         res.setHeader('Content-Type', 'application/json');
-        return res.status(401).json({ error: `No existen usuarios autenticados` })
+        return res.status(401).json({ error: `usuario inexistente` })
     }
     next()
 }

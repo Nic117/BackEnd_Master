@@ -98,7 +98,7 @@ hr {
 }
 
 .producto {
-    width: calc(30% - 10px); /* Ancho de los productos (50% del contenedor - margen) */
+    width: calc(30% - 10px); /* Ancho de los productos (30% del contenedor - margen) */
     margin-bottom: 20px;
     padding: 20px;
     border: 1px solid #ccc;
@@ -133,4 +133,50 @@ hr {
 .producto button:hover {
     background-color: darkorange;
     border-color: darkorange;
+}
+
+/* Estilos específicos para el menú de navegación */
+ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+    background-color: #d59214;
+}
+
+ul li {
+    display: inline;
+    margin-right: 10px;
+}
+
+ul li a {
+    text-decoration: none;
+    color: white;
+    padding: 14px 20px;
+    display: inline-block;
+}
+
+ul li a:hover {
+    background-color: #575757a5;
+}
+
+button {
+    background-color: #732929;
+    border: none;
+    padding: 14px 20px;
+    cursor: pointer;
+}
+
+button a {
+    text-decoration: none;
+    color: white;
+    display: inline-block;
+}
+
+button:hover {
+    background-color: #787474da;
+}
+
+/* Estilos específicos para el botón de logout */
+button a:hover {
+    color: white;
 }
