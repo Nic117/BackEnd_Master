@@ -2,7 +2,7 @@ import { Router } from 'express';
 import mongoose, { isValidObjectId } from "mongoose";
 import CartManager from '../dao/CartManagerMONGO.js';
 import ProductManager from '../dao/ProductManagerMONGO.js';
-import { auth } from '../utils.js';
+import { auth } from '../middleware/auth.js';
 
 export const router = Router();
 const cartManager = new CartManager();
@@ -51,7 +51,7 @@ router.post('/', async (req, res) => {
     }
 })
 
-router.post('/:cid/products/:pid', async (req, res) => {
+router.post('/:cid/products/:pid', auth(["admin"]), async (req, res) => {
 
     res.setHeader('Content-Type', 'application/json')
     const { cid, pid } = req.params;
@@ -77,11 +77,11 @@ router.post('/:cid/products/:pid', async (req, res) => {
         let resultado = await cartManager.addProductToCart(cid, pid);
         res.status(200).json({ success: true, message: 'Producto agregado exitosamente', resultado })
     } catch (error) {
-        res.status(500).json({ error: `Error interno del servidor`, detalle: `${error.message}` });
+        res.status(500).json({ error: `Error inesperado en el servidor`, detalle: `${error.message}` });
     }
 })
 
-router.put('/:cid', async (req, res) => {
+router.put('/:cid', auth(["admin", "usuario"]), async (req, res) => {
     res.setHeader('Content-Type', 'application/json')
     let cid = req.params.cid
     let products = req.body;
@@ -90,7 +90,7 @@ router.put('/:cid', async (req, res) => {
             error: `Ingrese un ID de MongoDB válido`,
         });
     }
-    
+
     let cartExists = await cartManager.getCartsBy({ _id: cid })
     if (!cartExists) {
         res.setHeader('Content-Type', 'application/json');
@@ -101,11 +101,11 @@ router.put('/:cid', async (req, res) => {
         const newCart = await cartManager.updateCart(cid, products);
         return res.status(200).json(newCart);
     } catch (error) {
-        res.status(500).json({ error: `Error interno del servidor`, detalle: `${error.message}` });
+        res.status(500).json({ error: `Error inesperado en el servidor`, detalle: `${error.message}` });
     }
 })
 
-router.put('/:cid/products/:pid', async (req, res) => {
+router.put('/:cid/products/:pid', auth(["admin", "usuario"]), async (req, res) => {
     res.setHeader('Content-Type', 'application/json')
     const { cid, pid } = req.params;
     let { quantity } = req.body;
@@ -133,12 +133,12 @@ router.put('/:cid/products/:pid', async (req, res) => {
         const result = await cartManager.updateProductQ(cid, pid, quantity);
         return res.status(200).json(result);
     } catch (error) {
-        res.status(500).json({ error: `Error interno del servidor`, detalle: `${error.message}` })
+        res.status(500).json({ error: `Error inesperado en el servidor`, detalle: `${error.message}` })
 
     }
 })
 
-router.delete('/:cid', async (req, res) => {
+router.delete('/:cid', auth(["admin", "usuario"]), async (req, res) => {
     res.setHeader('Content-Type', 'application/json')
     const cid = req.params.cid
 
@@ -157,22 +157,22 @@ router.delete('/:cid', async (req, res) => {
     try {
         let carritoEliminado = await cartManager.deleteAllProductsFromCart(cid)
         if (carritoEliminado) {
-            res.status(200).json({ message: 'Todos los productos removidos', carritoEliminado });
+            res.status(200).json({ message: 'Todos los productos eliminados del carrito.', carritoEliminado });
         } else {
-            res.status(404).json({ message: 'Cart not found' });
+            res.status(404).json({ message: 'Carrito no encontrado' });
         }
     } catch (error) {
         res.setHeader('Content-Type', 'application/json');
         return res.status(500).json(
             {
-                error: `Error interno del servidor`,
+                error: `Error interno servidor`,
                 detalle: `${error.message}`
             }
         )
     }
 })
 
-router.delete('/:cid/products/:pid', async (req, res) => {
+router.delete('/:cid/products/:pid', auth(["admin", "usuario"]), async (req, res) => {
     res.setHeader('Content-Type', 'application/json')
     const { cid, pid } = req.params;
 
@@ -199,11 +199,11 @@ router.delete('/:cid/products/:pid', async (req, res) => {
         const cart = await cartManager.deleteProductFromCart(cid, pid);
 
         if (cart) {
-            res.status(200).json({ message: 'Producto removido del carrito', cart });
+            res.status(200).json({ message: 'Producto eliminado del carrito', cart });
         } else {
-            res.status(404).json({ message: 'not found' });
+            res.status(404).json({ message: 'Carrito o producto no encontrado' });
         }
     } catch (error) {
-        res.status(500).json({ message: 'Error al elminiar el producto', error });
+        res.status(500).json({ message: 'Error al eliminar producto del carrito', error });
     }
 });

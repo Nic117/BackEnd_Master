@@ -123,15 +123,15 @@ export default class CartManager {
             );
 
             if (!cart) {
-                return `Cart with id ${cid} not found`;
+                return `Carrito con id ${cid} no encontrado`;
             }
 
             console.log(`Product removed from cart: ${cart}`);
 
             return cart;
         } catch (error) {
-            console.log(`Error deleting product from cart: ${error}`);
-            return `Error deleting product from cart: ${error}`;
+            console.log(`Error al eliminar producto del carrito: ${error}`);
+            return `Error al eliminar producto del carrito: ${error}`;
         }
     }
 };

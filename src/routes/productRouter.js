@@ -2,7 +2,7 @@ import { isValidObjectId } from 'mongoose';
 import { Router } from 'express';
 import { io } from "../app.js";
 import ProductManager from '../dao/ProductManagerMONGO.js';
-import { auth } from '../utils.js';
+import { auth } from '../middleware/auth.js';
 const productManager = new ProductManager();
 export const router = Router();
 
@@ -116,7 +116,7 @@ router.get("/:pid", async (req, res) => {
     }
 });
 
-router.post("/", auth, async (req, res) => {
+router.post("/", auth(["admin"]), async (req, res) => {
     let nuevoProducto
     try {
         const { title, description, price, thumbnail, code, stock, category } = req.body;
@@ -142,14 +142,14 @@ router.post("/", auth, async (req, res) => {
         res.setHeader('Content-Type', 'application/json');
         return res.status(500).json(
             {
-                error: `Error interno del servidor`,
+                error: `Error inesperado en el servidor - Intente más tarde, o contacte a su administrador`,
                 detalle: `${error.message}`
             }
         )
     }
 })
 
-router.put("/:pid", async (req, res) => {
+router.put("/:pid", auth(["admin"]), async (req, res) => {
     let id = req.params.pid;
 
     try {
@@ -200,14 +200,14 @@ router.put("/:pid", async (req, res) => {
         res.setHeader('Content-Type', 'application/json');
         return res.status(500).json(
             {
-                error: `Error interno del servidor`,
+                error: `Error interno servidor`,
                 detalle: `${error.message}`
             }
         )
     }
 });
 
-router.delete("/:pid", async (req, res) => {
+router.delete("/:pid", auth(["admin"]), async (req, res) => {
     let id = req.params.pid;
 
     if (!isValidObjectId(id)) {
@@ -231,7 +231,7 @@ router.delete("/:pid", async (req, res) => {
     } catch (error) {
         return res.status(500).json(
             {
-                error: `Error interno del servidor`,
+                error: `Error interno servidor`,
                 detalle: `${error.message}`
             }
         )

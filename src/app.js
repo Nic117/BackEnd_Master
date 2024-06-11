@@ -5,9 +5,6 @@ import { engine } from "express-handlebars";
 import { Server } from "socket.io";
 import mongoose from "mongoose";
 import cookieParser from "cookie-parser";
-import sessions from "express-session";
-
-import MongoStore from "connect-mongo";
 import passport from "passport";
 import { initPassport } from "./config/passport.config.js";
 
@@ -28,28 +25,17 @@ app.set('views', path.join(__dirname, '/views'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, '/public')));
-app.use(cookieParser("codercoder123"))
-app.use(sessions({
-    secret: "codercoder123",
-    resave: true,
-    saveUninitialized: true,
-    store: MongoStore.create({
-        ttl: 3600,
-        mongoUrl: 'mongodb+srv://nic117:codercoder123@cluster0.z9ewukb.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0',
-        dbName:"eCommerce",
-        collectionName: "sessions"
-    })
-}))
+app.use(cookieParser())
+
 
 initPassport()
 app.use(passport.initialize())
-app.use(passport.session())
-
 
 app.use('/', vistasRouter);
 app.use('/api/product', productRouter);
 app.use('/api/carts', cartRouter);
 app.use('/api/sessions', sessionsRouter)
+
 
 let usuarios = [];
 
@@ -57,9 +43,11 @@ const server = app.listen(PORT, () => {
     console.log(`Server escuchando en puerto ${PORT}`);
 });
 
+
+
 export const io = new Server(server);
 
-io.on("connection", (socket) => { 
+io.on("connection", (socket) => {
     console.log(`Se conecto el cliente ${socket.id}`)
 
     socket.on("id", async (userName) => {
@@ -83,7 +71,7 @@ io.on("connection", (socket) => {
     })
 })
 
-const conectar = async () => {
+const connDB = async () => {
     try {
         await mongoose.connect(
             "mongodb+srv://nic117:codercoder123@cluster0.z9ewukb.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0",
@@ -91,11 +79,11 @@ const conectar = async () => {
                 dbName: "eCommerce"
             }
         )
-        console.log("Mongoose activado")
-   
+        console.log("Mongoose activo")
+
     } catch (error) {
         console.log("Error al conectar a DB", error.message)
     }
 }
 
-conectar()
+connDB()

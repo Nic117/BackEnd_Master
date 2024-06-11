@@ -1,15 +1,17 @@
-<h2>Login:</h2>
-<hr><br>{{>menu}}<br>
+{{>menu}}
+
 <form action="/api/sessions/login" method="post">
+    <h2>Ingresá:</h2>
 
     {{#if error}}
     <div style="color: rgb(230, 101, 20)">{{error}}</div>
-    {{/if}}
+   {{/if}}
     <input type="email" name="email" placeholder="Correo electronico">
     <input type="password" name="password" placeholder="Constraseña">
     <input type="text" name="web" value="web" hidden>
     <br><br>
     <input type="submit" value="Login">
     <button><a href="/register">Registrarse</a></button>
-     <button><a href="/api/sessions/github">Ingresar con GitHub</a></button>
+    <button><a href="/api/sessions/github">Ingresar con GitHub</a></button>
+
 </form>
