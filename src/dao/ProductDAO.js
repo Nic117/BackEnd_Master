@@ -6,7 +6,7 @@ export default class ProductManager {
         try {
             return await productsModelo.find().lean();
         } catch (error) {
-            throw new Error("Error al obtener productos: " + error.message);
+            throw new Error('Error al obtener productos: ' + error.message);
         }
     }
 
@@ -14,31 +14,31 @@ export default class ProductManager {
         try {
             return await productsModelo.paginate(filter, options);
         } catch (error) {
-            throw new Error("Error al obtener productos paginados: " + error.message);
+            throw new Error('Error al obtener productos paginados: ' + error.message);
         }
     }
 
-    async getSortProducts(sort) {
+    async getSortedProducts(sort) {
         try {
             return await productsModelo.find().sort({ [sort]: 1 }).lean();
         } catch (error) {
-            throw new Error("Error al obtener productos ordenados: " + error.message);
+            throw new Error('Error al obtener productos ordenados: ' + error.message);
         }
     }
 
-    async addProduct(product) {
+    async createProduct(product) {
         try {
             return await productsModelo.create(product);
         } catch (error) {
-            throw new Error("Error al agregar producto: " + error.message);
+            throw new Error('Error al crear producto: ' + error.message);
         }
     }
 
-    async getProductsBy(filtro) {
+    async getProductBy(filter) {
         try {
-            return await productsModelo.findOne(filtro).lean();
+            return await productsModelo.findOne(filter).lean();
         } catch (error) {
-            throw new Error("Error al obtener producto por filtro: " + error.message);
+            throw new Error('Error al obtener producto: ' + error.message);
         }
     }
 
@@ -46,7 +46,7 @@ export default class ProductManager {
         try {
             return await productsModelo.findByIdAndUpdate(id, updateData, { runValidators: true, returnDocument: "after" });
         } catch (error) {
-            throw new Error("Error al actualizar producto: " + error.message);
+            throw new Error('Error al actualizar producto: ' + error.message);
         }
     }
 
@@ -54,7 +54,7 @@ export default class ProductManager {
         try {
             return await productsModelo.deleteOne({ _id: id });
         } catch (error) {
-            throw new Error("Error al eliminar producto: " + error.message);
+            throw new Error('Error al eliminar producto: ' + error.message);
         }
     }
 }

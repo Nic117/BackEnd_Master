@@ -1,20 +1,19 @@
-import ProductManager from "./ProductManagerMONGO.js";
+import ProductManager from "./ProductDAO.js";
 import { cartModelo } from './models/cartModelo.js';
-import mongoose from "mongoose";
 
 export default class CartManager {
 
     async getCarts() {
-        return await cartModelo.find().populate("products.product").lean()
+        return await cartModelo.find().populate("products.product").lean();
     };
 
     async createCart() {
-        let cart = await cartModelo.create({ products: [] })
+        let cart = await cartModelo.create({ products: [] });
         return cart.toJSON();
     };
 
     async getCartsBy(filtro = {}) {
-        return await cartModelo.findOne(filtro).populate("products.product").lean()
+        return await cartModelo.findOne(filtro).populate("products.product").lean();
     };
 
     async getCartsProducts(id) {
@@ -69,19 +68,19 @@ export default class CartManager {
                 cid,
                 { $set: { products: products } },
                 { returnDocument: "after" }
-            )
+            );
             return `Carrito ${JSON.stringify(cart, null, 5)}`
         } catch (error) {
             console.error(error.message);
             return ("Error al actualizar el carrito");
         }
-    }
+    };
 
     async updateProductQ(cid, pid, quantity) {
         try {
             let cart = await cartModelo.findOneAndUpdate(
-                {_id:cid, "products.product": pid},
-                {$set: {"products.$.quantity": quantity}},
+                { _id: cid, "products.product": pid },
+                { $set: { "products.$.quantity": quantity } },
                 { new: true }
             ).populate("products.product");
             return cart;
@@ -89,7 +88,7 @@ export default class CartManager {
             console.error(error.message);
             return ("Error al actualizar la cantidad del producto");
         }
-    }
+    };
 
     async deleteAllProductsFromCart(cid) {
         try {
@@ -112,7 +111,7 @@ export default class CartManager {
         } catch (error) {
             return `Error al eliminar los productos del carrito: ${error}`;
         }
-    }
+    };
 
     async deleteProductFromCart(cid, pid) {
         try {
@@ -123,15 +122,15 @@ export default class CartManager {
             );
 
             if (!cart) {
-                return `Carrito con id ${cid} no encontrado`;
+                return `Carrito con ${cid} not found`;
             }
 
-            console.log(`Product removed from cart: ${cart}`);
+            console.log(`Producto removido carrito: ${cart}`);
 
             return cart;
         } catch (error) {
-            console.log(`Error al eliminar producto del carrito: ${error}`);
-            return `Error al eliminar producto del carrito: ${error}`;
+            console.log(`Error al elminar del carrito: ${error}`);
+            return `Error al elminar del carrito: ${error}`;
         }
-    }
+    };
 };

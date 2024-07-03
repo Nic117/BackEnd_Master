@@ -1,22 +1,27 @@
 import mongoose from "mongoose";
 import mongoosePaginate from "mongoose-paginate-v2";
 
-const cartCollection = "cart";
-const cartSchema = new mongoose.Schema({
-    products: [{
-        product: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "products"
-        },
-        quantity: Number
-    }]
-},
+const { Schema, model } = mongoose;
+
+const cartSchema = new Schema(
     {
-        timestamps: true
+        products: [
+            {
+                product: {
+                    type: Schema.Types.ObjectId,
+                    ref: "Product" // Referencia al modelo de productos, utilizando el nombre del modelo definido en Mongoose
+                },
+                quantity: Number
+            }
+        ]
+    },
+    {
+        timestamps: true // Habilita automáticamente los campos createdAt y updatedAt
     }
-)
+);
 
-cartSchema.plugin(mongoosePaginate);
+cartSchema.plugin(mongoosePaginate); // Aplica el plugin de paginación mongoose-paginate-v2 al esquema
 
+const cartModel = model("Cart", cartSchema); // El nombre "Cart" se utilizará como colección en la base de datos
 
-export const cartModelo = mongoose.model(cartCollection, cartSchema)
+export default cartModel;
