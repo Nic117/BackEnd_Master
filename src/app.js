@@ -1,23 +1,23 @@
-import express from "express";
 import path from "path";
-import __dirname from "./utils.js";
-import { engine } from "express-handlebars";
-import { Server } from "socket.io";
+import express from "express";
 import mongoose from "mongoose";
-import cookieParser from "cookie-parser";
 import passport from "passport";
+import __dirname from "./utils.js";
+import { Server } from "socket.io";
+import cookieParser from "cookie-parser";
+import { config } from "./config/config.js";
+import { engine } from "express-handlebars";
 import { initPassport } from "./config/passport.config.js";
 
-import { router as vistasRouter } from './routes/vistas.router.js';
+import { messageModelo } from "./dao/models/messageModelo.js";
 import { router as cartRouter } from './routes/cartRouter.js';
+import { router as vistasRouter } from './routes/vistas.router.js';
 import { router as productRouter } from './routes/productRouter.js';
 import { router as sessionsRouter } from './routes/sessionRouter.js';
-import { messageModelo } from "./dao/models/messageModelo.js";
 
 
-const PORT = 8080;
+const PORT = config.PORT;
 const app = express();
-
 app.engine('handlebars', engine());
 app.set('view engine', 'handlebars');
 app.set('views', path.join(__dirname, '/views'));
@@ -73,14 +73,8 @@ io.on("connection", (socket) => {
 
 const connDB = async () => {
     try {
-        await mongoose.connect(
-            "mongodb+srv://nic117:codercoder123@cluster0.z9ewukb.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0",
-            {
-                dbName: "eCommerce"
-            }
-        )
+        await mongoose.connect(config.MONGO_URL, { dbName: config.DB_NAME })
         console.log("Mongoose activo")
-
     } catch (error) {
         console.log("Error al conectar a DB", error.message)
     }
