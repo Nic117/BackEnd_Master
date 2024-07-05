@@ -8,7 +8,7 @@ export const router = Router();
 router.get("/", ProductController.getProducts);
 router.get("/:pid", ProductController.getProductById);
 
-// Middleware para rutas que requieren verificación JWT y autorización de administrador
+// Rutas con autenticación y autorización para administradores
 router.use(verifyJWT, auth(["admin"]));
 
 router.post("/", ProductController.createProduct);
@@ -16,3 +16,4 @@ router.put("/:pid", ProductController.updateProduct);
 router.delete("/:pid", ProductController.deleteProduct);
 
 export default router;
+

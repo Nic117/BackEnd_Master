@@ -10,8 +10,8 @@ router.get('/:cid', CartController.getCartsById);
 router.get('/:cid/purchase', CartController.getCartsById);
 router.post('/', CartController.createCart);
 
-// Rutas que requieren verificación JWT y autorización de usuario
-router.use('/:cid', verifyJWT, auth(["usuario"]));
+// Rutas con autenticación y autorización
+router.use('/:cid/products/:pid', verifyJWT, auth(["usuario"]));
 
 router.post('/:cid/products/:pid', CartController.addToCart);
 router.put('/:cid', CartController.updateCart);
@@ -20,3 +20,4 @@ router.delete('/:cid', CartController.clearCart);
 router.delete('/:cid/products/:pid', CartController.deleteProductFromCart);
 
 export default router;
+

@@ -6,6 +6,7 @@ export class ProductController {
     static getProducts = async (req, res) => {
         try {
             const { page = 1, limit = 10, sort } = req.query;
+
             const options = {
                 page: Number(page),
                 limit: Number(limit),
@@ -38,8 +39,12 @@ export class ProductController {
                 const baseUrl = req.originalUrl.split("?")[0];
                 const sortParam = sort ? `&sort=${sort}` : "";
 
-                const prevLink = prevPage ? `${baseUrl}?page=${prevPage}${sortParam}` : null;
-                const nextLink = nextPage ? `${baseUrl}?page=${nextPage}${sortParam}` : null;
+                const prevLink = prevPage
+                    ? `${baseUrl}?page=${prevPage}${sortParam}`
+                    : null;
+                const nextLink = nextPage
+                    ? `${baseUrl}?page=${nextPage}${sortParam}`
+                    : null;
 
                 return {
                     prevPage: prevPage ? parseInt(prevPage) : null,
@@ -49,7 +54,10 @@ export class ProductController {
                 };
             };
 
-            const products = await productService.getProductsPaginate(searchQuery, options);
+            const products = await productService.getProductsPaginate(
+                searchQuery,
+                options
+            );
             const { prevPage, nextPage, prevLink, nextLink } = buildLinks(products);
 
             let requestedPage = parseInt(page);
@@ -58,7 +66,9 @@ export class ProductController {
             }
 
             if (requestedPage > products.totalPages) {
-                return res.status(404).json({ error: "La página solicitada está fuera de rango" });
+                return res
+                    .status(404)
+                    .json({ error: "La página solicitada está fuera de rango" });
             }
 
             const response = {
@@ -74,7 +84,7 @@ export class ProductController {
                 nextLink,
             };
 
-            return res.status(200).json(response);
+            return res.status(200).send(response);
         } catch (error) {
             console.log(error);
             res.status(500).json({ error: "Error interno del servidor" });
@@ -82,110 +92,150 @@ export class ProductController {
     }
 
     static getProductById = async (req, res) => {
-        const { pid } = req.params;
-        if (!isValidObjectId(pid)) {
-            return res.status(400).json({ error: "Ingrese un ID válido de MONGODB" });
+        let id = req.params.pid;
+        if (!isValidObjectId(id)) {
+            res.setHeader('Content-Type', 'application/json');
+            return res.status(400).json({ error: `Ingrese un ID válido de MONGODB` })
         }
-
         try {
-            const product = await productService.getProductsBy({ _id: pid });
+            res.setHeader('Content-Type', 'application/json');
+            const product = await productService.getProductsBy({ _id: id });
+
             if (product) {
                 res.status(200).json(product);
             } else {
-                res.status(404).json({ error: `No existe un producto con el ID: ${pid}` });
+                return res.status(404).json({ error: `No existe un producto con el ID: ${id}` });
             }
+
         } catch (error) {
-            res.status(500).json({ error: "Error inesperado en el servidor", detalle: error.message });
+            res.status(500).json({ error: `Error inesperado en el servidor`, detalle: `${error.message}` });
         }
     }
 
     static createProduct = async (req, res) => {
-        const { title, description, price, thumbnail, code, stock, category } = req.body;
-
-        if (!title || !description || !price || !thumbnail || !code || !stock || !category) {
-            return res.status(400).json({ error: "Todos los campos son obligatorios" });
-        }
-
-        if (typeof price !== 'number' || typeof stock !== 'number') {
-            return res.status(400).json({ error: "El precio y el stock deben ser números" });
-        }
-
+        let nuevoProducto
         try {
-            const codeRepeat = await productService.getProductsBy({ code });
+            const { title, description, price, thumbnail, code, stock, category } = req.body;
+
+            if (!title || !description || !price || !thumbnail || !code || !stock || !category) {
+                return res.status(400).json({ error: 'Todos los campos son obligatorios' });
+            }
+            if (typeof price !== 'number' || typeof stock !== 'number') {
+                return res.status(400).json({ error: 'El precio y el stock deben ser números' })
+            }
+
+            const codeRepeat = await productService.getProductsBy({ code })
+
             if (codeRepeat) {
                 return res.status(400).json({ error: `Error, el código ${code} se está repitiendo` });
             }
-
-            const nuevoProducto = await productService.createProduct({
-                title, description, price, thumbnail, code, stock, category
-            });
-
-            io.emit("newProduct", title);
+            
+            nuevoProducto = await productService.createProduct({ title, description, price, thumbnail, code, stock, category })
+            io.emit("newProduct", title)
+            res.setHeader('Content-Type', 'application/json');
             return res.status(201).json(nuevoProducto);
+
+
         } catch (error) {
-            res.status(500).json({ error: "Error inesperado en el servidor", detalle: error.message });
+            res.setHeader('Content-Type', 'application/json');
+            return res.status(500).json(
+                {
+                    error: `Error en el servidor - Intente más tarde, o contacte a su administrador`,
+                    detalle: `${error.message}`
+                }
+            )
         }
     }
 
     static updateProduct = async (req, res) => {
-        const { pid } = req.params;
-        const updateData = req.body;
-
-        if (!isValidObjectId(pid)) {
-            return res.status(400).json({ error: "Ingrese un ID válido de MONGODB" });
-        }
-
-        if (updateData._id) {
-            delete updateData._id;
-        }
-
-        if (updateData.code) {
-            try {
-                const exist = await productService.getProductsBy({ code: updateData.code });
-                if (exist) {
-                    return res.status(400).json({ error: `Ya existe otro producto con el código ${updateData.code}` });
-                }
-            } catch (error) {
-                return res.status(500).json({ error: error.message });
-            }
-        }
-
-        if ((updateData.stock !== undefined && isNaN(updateData.stock)) ||
-            (updateData.price !== undefined && isNaN(updateData.price))) {
-            return res.status(400).json({ error: "Stock y precio deben ser números" });
-        }
+        let id = req.params.pid;
 
         try {
-            const productoModificado = await productService.updateProduct(pid, updateData);
-            return res.status(200).json(`El producto ${pid} se ha modificado: ${productoModificado}`);
+
+            if (!isValidObjectId(id)) {
+                res.setHeader('Content-Type', 'application/json');
+                return res.status(400).json({ error: `Ingrese un ID válido de MONGODB` })
+            }
+
+            res.setHeader('Content-Type', 'application/json');
+            let stock, price
+            let updateData = req.body
+
+            if (updateData._id) {
+                delete updateData._id;
+            }
+
+            if (updateData.code) {
+                let exist;
+
+                try {
+                    exist = await productService.getProductsBy({ code: updateData.code })
+                    if (exist) {
+                        res.setHeader('Content-Type', 'application/json');
+                        return res.status(400).json({ error: `Ya existe otro producto con codigo ${updateData.code}` })
+                    }
+                } catch (error) {
+                    res.setHeader('Content-Type', 'application/json');
+                    return res.status(500).json(
+                        {
+                            error: `${error.message}`
+                        }
+                    )
+                }
+            }
+
+            if ((stock !== undefined && isNaN(stock)) || (price !== undefined && isNaN(price))) {
+                return res.status(400).json({ error: "Stock y precio deben ser números" });
+            }
+
+            try {
+                let productoModificado = await productService.updateProduct(id, updateData);
+                return res.status(200).json(`El producto ${id} se ha modificado: ${productoModificado}`);
+            } catch (error) {
+                res.status(300).json({ error: `Error al modificar el producto`, detalle: `${error.message}` });
+            }
         } catch (error) {
-            res.status(500).json({ error: "Error inesperado en el servidor", detalle: error.message });
+            res.setHeader('Content-Type', 'application/json');
+            return res.status(500).json(
+                {
+                    error: `Error inesperado en el servidor`,
+                    detalle: `${error.message}`
+                }
+            )
         }
     }
 
     static deleteProduct = async (req, res) => {
-        const { pid } = req.params;
+        let id = req.params.pid;
 
-        if (!isValidObjectId(pid)) {
-            return res.status(400).json({ error: "Ingrese un ID válido de MONGODB" });
+        if (!isValidObjectId(id)) {
+            return res.status(400).json({ error: `Ingrese un ID válido de MONGODB` })
         }
 
+        const product = await productService.getProductsBy({ _id: id });
+        if (!product) {
+            return res.status(404).json({ error: `No existe un producto con el ID: ${id}` });
+        }
         try {
-            const product = await productService.getProductsBy({ _id: pid });
-            if (!product) {
-                return res.status(404).json({ error: `No existe un producto con el ID: ${pid}` });
+            const deletedProduct = await productService.deleteProduct(id);
+            if (deletedProduct.deletedCount > 0) {
+                let products = await productService.getProducts();
+                io.emit("deletedProduct", products);
+                return res.status(200).json({ payload: `El producto con id ${id} fue eliminado` });
+            } else {
+                return res.status(400).json({ error: `No existe ningun producto con el id ${id}` })
             }
 
-            const deletedProduct = await productService.deleteProduct(pid);
-            if (deletedProduct.deletedCount > 0) {
-                const products = await productService.getProducts();
-                io.emit("deletedProduct", products);
-                return res.status(200).json({ payload: `El producto con id ${pid} fue eliminado` });
-            } else {
-                return res.status(400).json({ error: `No existe ningún producto con el id ${pid}` });
-            }
         } catch (error) {
-            res.status(500).json({ error: "Error en el servidor", detalle: error.message });
+            return res.status(500).json(
+                {
+                    error: `Error inesperado en el servidor`,
+                    detalle: `${error.message}`
+                }
+            )
+
         }
+
+
     }
 }

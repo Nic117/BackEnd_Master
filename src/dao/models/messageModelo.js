@@ -1,17 +1,14 @@
 import mongoose from "mongoose";
 
-const { Schema, model } = mongoose;
-
-const messageSchema = new Schema(
+const messageCollection = "message";
+const messageSchema = new mongoose.Schema(
     {
-        user: { type: String, required: true },
-        message: { type: String, required: true }
+        user: String,
+        message: String,
     },
     {
-        timestamps: true // Habilita automáticamente los campos createdAt y updatedAt
+        timestamps: true
     }
-);
+)
 
-const messageModel = model("Message", messageSchema); // El nombre "Message" se utilizará como colección en la base de datos
-
-export default messageModel;
+export const messageModelo = mongoose.model(messageCollection, messageSchema)

@@ -6,7 +6,8 @@ export default class ProductManager {
         try {
             return await productsModelo.find().lean();
         } catch (error) {
-            throw new Error('Error al obtener productos: ' + error.message);
+            console.error(`Error al obtener productos: ${error}`);
+            throw new Error("Error al obtener productos");
         }
     }
 
@@ -14,15 +15,17 @@ export default class ProductManager {
         try {
             return await productsModelo.paginate(filter, options);
         } catch (error) {
-            throw new Error('Error al obtener productos paginados: ' + error.message);
+            console.error(`Error al paginar productos: ${error}`);
+            throw new Error("Error al paginar productos");
         }
     }
 
-    async getSortedProducts(sort) {
+    async getSortProducts(sort) {
         try {
             return await productsModelo.find().sort({ [sort]: 1 }).lean();
         } catch (error) {
-            throw new Error('Error al obtener productos ordenados: ' + error.message);
+            console.error(`Error al obtener productos ordenados: ${error}`);
+            throw new Error("Error al obtener productos ordenados");
         }
     }
 
@@ -30,23 +33,26 @@ export default class ProductManager {
         try {
             return await productsModelo.create(product);
         } catch (error) {
-            throw new Error('Error al crear producto: ' + error.message);
+            console.error(`Error al crear producto: ${error}`);
+            throw new Error("Error al crear producto");
         }
     }
 
-    async getProductBy(filter) {
+    async getProductsBy(filtro) {
         try {
-            return await productsModelo.findOne(filter).lean();
+            return await productsModelo.findOne(filtro).lean();
         } catch (error) {
-            throw new Error('Error al obtener producto: ' + error.message);
+            console.error(`Error al obtener producto por filtro: ${error}`);
+            throw new Error("Error al obtener producto por filtro");
         }
     }
 
     async updateProduct(id, updateData) {
         try {
-            return await productsModelo.findByIdAndUpdate(id, updateData, { runValidators: true, returnDocument: "after" });
+            return await productsModelo.findByIdAndUpdate(id, updateData, { runValidators: true, new: true });
         } catch (error) {
-            throw new Error('Error al actualizar producto: ' + error.message);
+            console.error(`Error al actualizar producto: ${error}`);
+            throw new Error("Error al actualizar producto");
         }
     }
 
@@ -54,7 +60,8 @@ export default class ProductManager {
         try {
             return await productsModelo.deleteOne({ _id: id });
         } catch (error) {
-            throw new Error('Error al eliminar producto: ' + error.message);
+            console.error(`Error al eliminar producto: ${error}`);
+            throw new Error("Error al eliminar producto");
         }
     }
 }

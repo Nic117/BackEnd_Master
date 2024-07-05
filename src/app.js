@@ -1,19 +1,22 @@
+import cors from 'cors';
 import path from "path";
 import express from "express";
 import mongoose from "mongoose";
 import passport from "passport";
-import __dirname from "./utils.js";
 import { Server } from "socket.io";
+import __dirname from "./utils/utils.js";
 import cookieParser from "cookie-parser";
 import { config } from "./config/config.js";
 import { engine } from "express-handlebars";
 import { initPassport } from "./config/passport.config.js";
+import { errorHandler } from './middleware/errorHandler.js';
 
 import { messageModelo } from "./dao/models/messageModelo.js";
 import { router as cartRouter } from './routes/cartRouter.js';
 import { router as vistasRouter } from './routes/vistas.router.js';
 import { router as productRouter } from './routes/productRouter.js';
 import { router as sessionsRouter } from './routes/sessionRouter.js';
+
 
 
 const PORT = config.PORT;
@@ -26,7 +29,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, '/public')));
 app.use(cookieParser())
-
+app.use(cors());
 
 initPassport()
 app.use(passport.initialize())
@@ -36,6 +39,7 @@ app.use('/api/product', productRouter);
 app.use('/api/carts', cartRouter);
 app.use('/api/sessions', sessionsRouter)
 
+app.use(errorHandler);
 
 let usuarios = [];
 

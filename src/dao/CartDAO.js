@@ -1,33 +1,53 @@
-import ProductManager from "./ProductDAO.js";
 import { cartModelo } from './models/cartModelo.js';
+import ProductManager from "./ProductDAO.js";
 
 export default class CartManager {
 
     async getCarts() {
-        return await cartModelo.find().populate("products.product").lean();
-    };
+        try {
+            return await cartModelo.find().populate("products.product").lean();
+        } catch (error) {
+            console.error(`Error al obtener carritos: ${error}`);
+            throw new Error("Error al obtener los carritos");
+        }
+    }
 
     async createCart() {
-        let cart = await cartModelo.create({ products: [] });
-        return cart.toJSON();
-    };
+        try {
+            const cart = await cartModelo.create({ products: [] });
+            return cart.toJSON();
+        } catch (error) {
+            console.error(`Error al crear un carrito: ${error}`);
+            throw new Error("Error al crear un nuevo carrito");
+        }
+    }
 
     async getCartsBy(filtro = {}) {
-        return await cartModelo.findOne(filtro).populate("products.product").lean();
-    };
+        try {
+            return await cartModelo.findOne(filtro).populate("products.product").lean();
+        } catch (error) {
+            console.error(`Error al obtener carrito por filtro: ${error}`);
+            throw new Error("Error al obtener carrito por filtro");
+        }
+    }
 
     async getCartsProducts(id) {
-        const carts = await this.getCarts();
-        const cart = carts.find(c => c.id === id);
-        return cart.products;
-    };
+        try {
+            const carts = await this.getCarts();
+            const cart = carts.find(c => c.id === id);
+            return cart ? cart.products : [];
+        } catch (error) {
+            console.error(`Error al obtener productos del carrito: ${error}`);
+            throw new Error("Error al obtener productos del carrito");
+        }
+    }
 
     async addProductToCart(cid, pid) {
         try {
-            const cart = await cartModelo.findById(cid);
+            let cart = await cartModelo.findById(cid);
 
             if (!cart) {
-                return `Carrito con id ${cid} no encontrado`;
+                throw new Error(`Carrito con id ${cid} no encontrado`);
             }
 
             const existingProductIndex = cart.products.findIndex(product => product.product == pid);
@@ -39,98 +59,72 @@ export default class CartManager {
                 const product = await productManager.getProductsBy({ _id: pid });
 
                 if (!product || product === "Not found") {
-                    console.log(`Producto con id ${pid} no encontrado`);
-                    return `Producto con id ${pid} no encontrado`;
+                    throw new Error(`Producto con id ${pid} no encontrado`);
                 }
 
-                const newProduct = {
+                cart.products.push({
                     product: pid,
                     quantity: 1
-                };
-
-                cart.products.push(newProduct);
-                console.log(`Nuevo producto agregado al carrito: ${newProduct}`);
+                });
             }
 
             await cart.save();
-            console.log(`Carrito guardado correctamente: ${cart}`);
-
             return cart;
         } catch (error) {
-            console.log(`Error al añadir producto: ${error}`);
-            return `Error al añadir producto: ${error}`;
+            console.error(`Error al añadir producto al carrito: ${error}`);
+            throw new Error("Error al añadir producto al carrito");
         }
-    };
+    }
 
     async updateCart(cid, products) {
         try {
-            let cart = await cartModelo.findByIdAndUpdate(
+            return await cartModelo.findByIdAndUpdate(
                 cid,
                 { $set: { products: products } },
-                { returnDocument: "after" }
+                { new: true }
             );
-            return `Carrito ${JSON.stringify(cart, null, 5)}`
         } catch (error) {
-            console.error(error.message);
-            return ("Error al actualizar el carrito");
+            console.error(`Error al actualizar el carrito: ${error}`);
+            throw new Error("Error al actualizar el carrito");
         }
-    };
+    }
 
     async updateProductQ(cid, pid, quantity) {
         try {
-            let cart = await cartModelo.findOneAndUpdate(
+            return await cartModelo.findOneAndUpdate(
                 { _id: cid, "products.product": pid },
                 { $set: { "products.$.quantity": quantity } },
                 { new: true }
             ).populate("products.product");
-            return cart;
         } catch (error) {
-            console.error(error.message);
-            return ("Error al actualizar la cantidad del producto");
+            console.error(`Error al actualizar la cantidad del producto: ${error}`);
+            throw new Error("Error al actualizar la cantidad del producto");
         }
-    };
+    }
 
     async deleteAllProductsFromCart(cid) {
         try {
-            const cart = await cartModelo.findByIdAndUpdate(
+            return await cartModelo.findByIdAndUpdate(
                 cid,
                 { $set: { products: [] } },
-                { returnDocument: "after" }
+                { new: true }
             );
-
-            if (!cart) {
-                return `Carrito con id ${cid} no encontrado`;
-            }
-
-            cart.products = [];
-
-            await cart.save();
-            console.log(`Productos eliminados correctamente: ${cart}`);
-
-            return cart;
         } catch (error) {
-            return `Error al eliminar los productos del carrito: ${error}`;
+            console.error(`Error al eliminar todos los productos del carrito: ${error}`);
+            throw new Error("Error al eliminar todos los productos del carrito");
         }
-    };
+    }
 
     async deleteProductFromCart(cid, pid) {
         try {
-            const cart = await cartModelo.findByIdAndUpdate(
-                cid,
-                { $inc: { 'products.$[product].quantity': -1 } },
-                { new: true, arrayFilters: [{ 'product._id': pid }] }
+            return await cartModelo.findOneAndUpdate(
+                { _id: cid, "products.product": pid },
+                { $inc: { 'products.$.quantity': -1 } },
+                { new: true }
             );
-
-            if (!cart) {
-                return `Carrito con ${cid} not found`;
-            }
-
-            console.log(`Producto removido carrito: ${cart}`);
-
-            return cart;
         } catch (error) {
-            console.log(`Error al elminar del carrito: ${error}`);
-            return `Error al elminar del carrito: ${error}`;
+            console.error(`Error al eliminar el producto del carrito: ${error}`);
+            throw new Error("Error al eliminar el producto del carrito");
         }
-    };
-};
+    }
+}

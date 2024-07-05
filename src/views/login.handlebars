@@ -1,11 +1,10 @@
-{{>menu}}
-
+<h2>Iniciar Sesion</h2>
+<hr><br>{{>menu}}<br>
 <form action="/api/sessions/login" method="post">
-    <h2>Ingresá:</h2>
 
     {{#if error}}
-    <div style="color: rgb(230, 101, 20)">{{error}}</div>
-   {{/if}}
+    <div style="color: red">{{error}}</div>
+    {{/if}}
     <input type="email" name="email" placeholder="Correo electronico">
     <input type="password" name="password" placeholder="Constraseña">
     <input type="text" name="web" value="web" hidden>

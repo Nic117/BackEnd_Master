@@ -10,15 +10,21 @@ router.get('/realtimeproducts', ViewController.getRealTimeProducts);
 router.get('/register', ViewController.register);
 router.get('/login', ViewController.login);
 
-// Middleware para rutas que requieren verificación JWT
+// Middleware de autenticación y autorización para las rutas siguientes
 router.use(verifyJWT);
 
-// Rutas que requieren verificación JWT y autorización de usuario
-router.get("/chat", auth(["usuario"]), ViewController.getChat);
-router.get("/products", auth(["usuario"]), ViewController.getProductsPaginate);
-router.get("/carts/:cid", ViewController.getCartById);
+// Rutas protegidas para "usuario"
+router.use(auth(["usuario"]));
 
-// Rutas que requieren verificación JWT y autorización de usuario o administrador
-router.get('/profile', auth(["usuario", "admin"]), ViewController.getProfile);
+router.get('/chat', ViewController.getChat);
+router.get('/products', ViewController.getProductsPaginate);
+router.get('/carts/:cid', ViewController.getCartById);
+
+// Rutas protegidas para "usuario" y "admin"
+router.use(auth(["usuario", "admin"]));
+
+router.get('/profile', ViewController.getProfile);
 
 export default router;
+
+

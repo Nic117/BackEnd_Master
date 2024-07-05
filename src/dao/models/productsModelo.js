@@ -1,9 +1,9 @@
 import mongoose from "mongoose";
 import mongoosePaginate from "mongoose-paginate-v2";
 
-const { Schema, model } = mongoose;
 
-const productsSchema = new Schema(
+const productsCollection = "products";
+const productsSchema = new mongoose.Schema(
     {
         status: Boolean,
         title: { type: String, required: true },
@@ -15,12 +15,10 @@ const productsSchema = new Schema(
         category: String
     },
     {
-        timestamps: true // Habilita automáticamente los campos createdAt y updatedAt
+        timestamps: true
     }
-);
+)
 
-productsSchema.plugin(mongoosePaginate); // Aplica el plugin de paginación mongoose-paginate-v2 al esquema
+productsSchema.plugin(mongoosePaginate);
 
-const productsModel = model("Product", productsSchema); // El nombre "Product" se utilizará como colección en la base de datos
-
-export default productsModel;
+export const productsModelo = mongoose.model(productsCollection, productsSchema)

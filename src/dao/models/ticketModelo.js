@@ -1,22 +1,57 @@
 import mongoose from "mongoose";
 
-const { Schema, model } = mongoose;
+const ticketsCollection = "tickets";
 
-const ticketSchema = new Schema(
+// Definición del esquema del ticket
+const ticketSchema = new mongoose.Schema(
     {
-        code: String,
-        purchase_datetime: { type: Date, default: Date.now },
-        amount: Number,
+        code: {
+            type: String,
+            required: true,
+            unique: true, // Asegura que el código del ticket sea único
+        },
+        purchase_datetime: {
+            type: Date,
+            default: Date.now,
+        },
+        amount: {
+            type: Number,
+            required: true,
+        },
         purchaser: {
-            type: Schema.Types.ObjectId,
-            ref: "User" // Referencia al modelo de usuario, utilizando el nombre de la colección
-        }
+            type: String,
+            required: true,
+        },
+        products: [
+            {
+                _id: {
+                    type: mongoose.Schema.Types.ObjectId,
+                    ref: "products", // Referencia al modelo de productos
+                    required: true,
+                },
+                quantity: {
+                    type: Number,
+                    required: true,
+                },
+                title: {
+                    type: String,
+                    required: true,
+                },
+                price: {
+                    type: Number,
+                    required: true,
+                },
+                subtotal: {
+                    type: Number,
+                    required: true,
+                },
+            },
+        ],
     },
     {
-        timestamps: true // Habilita automáticamente los campos createdAt y updatedAt
+        timestamps: true, // Agrega createdAt y updatedAt automáticamente
     }
 );
 
-const ticketModel = model("Ticket", ticketSchema); // El nombre "Ticket" se utilizará como colección en la base de datos
-
-export default ticketModel;
+// Modelo de Mongoose para tickets
+export const ticketModelo = mongoose.model(ticketsCollection, ticketSchema);

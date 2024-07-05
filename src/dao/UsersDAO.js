@@ -7,23 +7,26 @@ export default class UserManager {
             let newUser = await userModel.create(user);
             return newUser.toJSON();
         } catch (error) {
-            throw new Error('Error al crear usuario: ' + error.message);
+            console.error(`Error al crear usuario: ${error}`);
+            throw new Error("Error al crear usuario");
         }
-    }
+    };
 
-    async getUsersBy(filter = {}) {
+    async getUsersBy(filtro = {}) {
         try {
-            return await userModel.findOne(filter).lean();
+            return await userModel.findOne(filtro).lean();
         } catch (error) {
-            throw new Error('Error al obtener usuario: ' + error.message);
+            console.error(`Error al obtener usuario: ${error}`);
+            throw new Error("Error al obtener usuario");
         }
-    }
+    };
 
-    async getByPopulate(filter = {}) {
+    async getByPopulate(filtro = {}) {
         try {
-            return await userModel.findOne(filter).populate("cart").lean();
+            return await userModel.findOne(filtro).populate("cart").lean();
         } catch (error) {
-            throw new Error('Error al obtener usuario con poblado: ' + error.message);
+            console.error(`Error al obtener usuario con populate: ${error}`);
+            throw new Error("Error al obtener usuario con populate");
         }
     }
 }
