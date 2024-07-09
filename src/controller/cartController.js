@@ -1,175 +1,262 @@
 import { isValidObjectId } from "mongoose";
 import { cartService } from "../services/cartService.js";
 import { productService } from "../services/productService.js";
+import UserManager from "../dao/UsersDAO.js";
+import { ticketService } from "../services/ticketService.js";
+import { CustomError } from "../utils/CustomError.js";
+import { TIPOS_ERROR } from "../utils/EErrors.js";
+
+const userService = new UserManager()
 
 export class CartController {
     static getCarts = async (req, res) => {
         try {
-            res.setHeader('Content-Type', 'application/json');
-            const carts = await cartService.getCarts();
-            res.status(200).json(carts);
+            res.setHeader('Content-Type', 'application/json')
+            const cart = await cartService.getCart()
+            res.status(200).json(cart);
         } catch (error) {
-            res.status(500).json({ error: 'Error inesperado en el servidor', detalle: error.message });
+            res.status(500).json({ error: `Error inesperado en el servidor`, detalle: `${error.message}` });
         }
     }
 
-    static getCartsById = async (req, res) => {
+    static getCartsById = async (req, res, next) => {
         try {
-            res.setHeader('Content-Type', 'application/json');
-            const cid = req.params.cid;
+            res.setHeader('Content-Type', 'application/json')
+            const cid = req.params.cid
 
             if (!isValidObjectId(cid)) {
-                return res.status(400).json({ error: 'Ingrese un ID de MongoDB válido' });
+                CustomError.createError("Error", "ID inválido", "Ingrese un ID válido de MONGODB", TIPOS_ERROR.ARGUMENTOS_INVALIDOS)
             }
 
-            const cart = await cartService.getCartsBy({ _id: cid });
+            const cart = await cartService.getCartsBy({ _id: cid })
             if (cart) {
                 res.status(200).json(cart);
             } else {
-                res.status(404).json({ error: `No existe un carrito con el ID: ${cid}` });
+                CustomError.createError("Error", "ID de carrito inválido", `No existe un carrito con el ID: ${cid}`, TIPOS_ERROR.NOT_FOUND)
             }
         } catch (error) {
-            res.status(500).json({ error: 'Error inesperado en el servidor', detalle: error.message });
+            return next(error)
         }
     }
 
     static createCart = async (req, res) => {
         try {
-            res.setHeader('Content-Type', 'application/json');
+            res.setHeader('Content-Type', 'application/json')
             const newCart = await cartService.createCart();
-            res.status(201).json({ message: 'Carrito creado', newCart });
+            res.status(200).json(`Carrito creado: ${newCart}`)
         } catch (error) {
-            res.status(500).json({ error: 'Error inesperado en el servidor', detalle: error.message });
+            res.status(500).json({ error: `Error inesperado en el servidor`, detalle: `${error.message}` });
         }
     }
 
-    static addToCart = async (req, res) => {
-        res.setHeader('Content-Type', 'application/json');
+    static addToCart = async (req, res, next) => {
+
+        res.setHeader('Content-Type', 'application/json')
         const { cid, pid } = req.params;
 
         if (!isValidObjectId(cid) || !isValidObjectId(pid)) {
-            return res.status(400).json({ error: 'Ingrese un ID de MongoDB válido' });
+            CustomError.createError("Error", "ID inválido", "Ingrese un ID válido de MONGODB", TIPOS_ERROR.ARGUMENTOS_INVALIDOS)
         }
 
+        let productExists = await productService.getProductsBy({ _id: pid });
+        if (!productExists) {
+            res.setHeader('Content-Type', 'application/json');
+            CustomError.createError("Error", "El producto no existe", `No existe un producto con el ID: ${pid}`, TIPOS_ERROR.ARGUMENTOS_INVALIDOS)
+        }
+
+        let cartExists = await cartService.getCartsBy({ _id: cid })
+        if (!cartExists) {
+            res.setHeader('Content-Type', 'application/json');
+            CustomError.createError("Error", "El carrito no existe", `No existe un carrito con el ID: ${cid}`, TIPOS_ERROR.ARGUMENTOS_INVALIDOS)
+        }
         try {
-            let productExists = await productService.getProductsBy({ _id: pid });
-            if (!productExists) {
-                return res.status(400).json({ error: `No existe un producto con el ID: ${pid}` });
-            }
-
-            let cartExists = await cartService.getCartsBy({ _id: cid });
-            if (!cartExists) {
-                return res.status(404).json({ error: `No existe un carrito con el ID: ${cid}` });
-            }
-
             let resultado = await cartService.addProductToCart(cid, pid);
-            res.status(200).json({ success: true, message: 'Producto agregado exitosamente', resultado });
+            res.status(200).json({ success: true, message: 'Producto agregado exitosamente', resultado })
         } catch (error) {
-            res.status(500).json({ error: 'Error inesperado en el servidor', detalle: error.message });
+            return next(error)
         }
     }
 
-    static updateCart = async (req, res) => {
+    static updateCart = async (req, res, next) => {
         res.setHeader('Content-Type', 'application/json');
-        const cid = req.params.cid;
-        const products = req.body;
-
+        let cid = req.params.cid;
+        let products = req.body;
         if (!isValidObjectId(cid)) {
-            return res.status(400).json({ error: 'Ingrese un ID de MongoDB válido' });
+            CustomError.createError("Error", "ID inválido", "Ingrese un ID válido de MONGODB", TIPOS_ERROR.ARGUMENTOS_INVALIDOS);
+        }
+
+        let cartExists = await cartService.getCartsBy({ _id: cid });
+        if (!cartExists) {
+            res.setHeader('Content-Type', 'application/json');
+            CustomError.createError("Error", "Carrito inexistente", `No existe un carrito con el ID: ${cid}`, TIPOS_ERROR.NOT_FOUND);
         }
 
         try {
-            let cartExists = await cartService.getCartsBy({ _id: cid });
-            if (!cartExists) {
-                return res.status(404).json({ error: `No existe un carrito con el ID: ${cid}` });
-            }
-
             const newCart = await cartService.updateCart(cid, products);
-            res.status(200).json(newCart);
+            return res.status(200).json(newCart);
         } catch (error) {
-            res.status(500).json({ error: 'Error inesperado en el servidor', detalle: error.message });
+            return next(error);
         }
     }
 
-    static updateQuantity = async (req, res) => {
-        res.setHeader('Content-Type', 'application/json');
+    static updateQuantity = async (req, res, next) => {
+        res.setHeader('Content-Type', 'application/json')
         const { cid, pid } = req.params;
-        const { quantity } = req.body;
+        let { quantity } = req.body;
 
         if (!isValidObjectId(cid) || !isValidObjectId(pid)) {
-            return res.status(400).json({ error: 'Ingrese un ID de MongoDB válido' });
+            CustomError.createError("Error", "ID inválido", "Ingrese un ID válido de MONGODB", TIPOS_ERROR.ARGUMENTOS_INVALIDOS);
+        }
+
+        let productExists = await productService.getProductsBy({ _id: pid });
+        if (!productExists) {
+            res.setHeader('Content-Type', 'application/json');
+            CustomError.createError("Error", "El producto no existe", `No existe un producto con el ID: ${pid}`, TIPOS_ERROR.ARGUMENTOS_INVALIDOS);
+        }
+
+
+        let cartExists = await cartService.getCartsBy({ _id: cid })
+        if (!cartExists) {
+            res.setHeader('Content-Type', 'application/json');
+            CustomError.createError("Error", "El carrito no existe", `No existe un carrito con el ID: ${cid}`, TIPOS_ERROR.ARGUMENTOS_INVALIDOS);
         }
 
         try {
-            let productExists = await productService.getProductsBy({ _id: pid });
-            if (!productExists) {
-                return res.status(400).json({ error: `No existe un producto con el ID: ${pid}` });
-            }
-
-            let cartExists = await cartService.getCartsBy({ _id: cid });
-            if (!cartExists) {
-                return res.status(404).json({ error: `No existe un carrito con el ID: ${cid}` });
-            }
-
             const result = await cartService.updateProductQ(cid, pid, quantity);
-            res.status(200).json(result);
+            return res.status(200).json(result);
         } catch (error) {
-            res.status(500).json({ error: 'Error inesperado en el servidor', detalle: error.message });
+            return next(error)
         }
     }
 
-    static clearCart = async (req, res) => {
-        res.setHeader('Content-Type', 'application/json');
-        const cid = req.params.cid;
+    static clearCart = async (req, res, next) => {
+        res.setHeader('Content-Type', 'application/json')
+        const cid = req.params.cid
 
         if (!isValidObjectId(cid)) {
-            return res.status(400).json({ error: 'Ingrese un ID de MongoDB válido' });
+            CustomError.createError("Error", "ID inválido", "Ingrese un ID válido de MONGODB", TIPOS_ERROR.ARGUMENTOS_INVALIDOS);
+        }
+
+        let cartExists = await cartService.getCartsBy({ _id: cid })
+        if (!cartExists) {
+            res.setHeader('Content-Type', 'application/json');
+            CustomError.createError("Error", "El carrito no existe", `No existe un carrito con el ID: ${cid}`, TIPOS_ERROR.ARGUMENTOS_INVALIDOS);
         }
 
         try {
-            let cartExists = await cartService.getCartsBy({ _id: cid });
-            if (!cartExists) {
-                return res.status(404).json({ error: `No existe un carrito con el ID: ${cid}` });
-            }
-
-            let carritoEliminado = await cartService.deleteAllProductsFromCart(cid);
+            let carritoEliminado = await cartService.deleteAllProductsFromCart(cid)
             if (carritoEliminado) {
-                res.status(200).json({ message: 'Todos los productos eliminados del carrito', carritoEliminado });
+                res.status(200).json({ message: 'El carrito está vacio', carritoEliminado });
             } else {
-                res.status(404).json({ message: 'Carrito no encontrado' });
+                CustomError.createError("Error", "El carrito no existe", `No existe un carrito con el ID: ${cid}`, TIPOS_ERROR.ARGUMENTOS_INVALIDOS)
             }
         } catch (error) {
-            res.status(500).json({ error: 'Error inesperado en el servidor', detalle: error.message });
+            res.setHeader('Content-Type', 'application/json');
+            return next(error)
         }
     }
 
-    static deleteProductFromCart = async (req, res) => {
-        res.setHeader('Content-Type', 'application/json');
+    static deleteProductFromCart = async (req, res, next) => {
+        res.setHeader('Content-Type', 'application/json')
         const { cid, pid } = req.params;
 
         if (!isValidObjectId(cid) || !isValidObjectId(pid)) {
-            return res.status(400).json({ error: 'Ingrese un ID de MongoDB válido' });
+            CustomError.createError("Error", "ID inválido", "Ingrese un ID válido de MONGODB", TIPOS_ERROR.ARGUMENTOS_INVALIDOS)
         }
 
+        let productExists = await productService.getProductsBy({ _id: pid });
+        if (!productExists) {
+            res.setHeader('Content-Type', 'application/json');
+            CustomError.createError("Error", "El producto no existe", `No existe un producto con el ID: ${pid}`, TIPOS_ERROR.ARGUMENTOS_INVALIDOS)
+        }
+
+        let cartExists = await cartService.getCartsBy({ _id: cid })
+        if (!cartExists) {
+            res.setHeader('Content-Type', 'application/json');
+            CustomError.createError("Error", "El carrito no existe", `No existe un carrito con el ID: ${cid}`, TIPOS_ERROR.ARGUMENTOS_INVALIDOS)
+        }
+
+
         try {
-            let productExists = await productService.getProductsBy({ _id: pid });
-            if (!productExists) {
-                return res.status(400).json({ error: `No existe un producto con el ID: ${pid}` });
-            }
-
-            let cartExists = await cartService.getCartsBy({ _id: cid });
-            if (!cartExists) {
-                return res.status(404).json({ error: `No existe un carrito con el ID: ${cid}` });
-            }
-
             const cart = await cartService.deleteProductFromCart(cid, pid);
+
             if (cart) {
                 res.status(200).json({ message: 'Producto eliminado del carrito', cart });
             } else {
-                res.status(404).json({ message: 'Carrito o producto no encontrado' });
+                CustomError.createError("Error", "El carrito o producto no existen", `No existe un carrito con el ID: ${cid}, o un producto con el ID: ${pid}`, TIPOS_ERROR.ARGUMENTOS_INVALIDOS)
             }
         } catch (error) {
-            res.status(500).json({ message: 'Error eliminando producto del carrito', error });
+            return next(error)
         }
     }
+
+    static purchase = async (req, res) => {
+        const { cid } = req.params;
+
+        if (!isValidObjectId(cid)) {
+            CustomError.createError("Error", "ID inválido", "Ingrese un ID válido de MONGODB", TIPOS_ERROR.ARGUMENTOS_INVALIDOS);
+        }
+
+        try {
+            const cart = await cartService.getCartsBy({ _id: cid });
+
+            if (!cart) {
+                CustomError.createError("Error", "El carrito no existe", `No existe un carrito con el ID: ${cid}`, TIPOS_ERROR.ARGUMENTOS_INVALIDOS)
+            }
+
+            const productsInCart = cart.products;
+            let productosParaFacturar = [];
+            let productosRestantes = [];
+
+            for (let product of productsInCart) {
+                const { product: { _id: pid }, quantity } = product;
+
+                if (!isValidObjectId(pid)) {
+                    CustomError.createError("Error", "ID inválido", "Ingrese un ID válido de MONGODB", TIPOS_ERROR.ARGUMENTOS_INVALIDOS)
+                }
+
+                const productData = await productService.getProductsBy({ _id: pid });
+
+                if (!productData) {
+                    CustomError.createError("Error", "El producto no existe", `No existe un producto con el ID: ${pid}`, TIPOS_ERROR.ARGUMENTOS_INVALIDOS)
+                }
+
+                if (productData.stock < quantity) {
+                    productosRestantes.push(product);
+                } else {
+                    const newStock = productData.stock - quantity;
+                    await productService.updateProduct(pid, { stock: newStock });
+
+                    productosParaFacturar.push({
+                        product: productData,
+                        quantity
+                    });
+                }
+            }
+
+            const totalAmount = productosParaFacturar.reduce((total, item) => total + (item.product.price * item.quantity), 0);
+            const ticket = await ticketService.createTicket({
+                code: `T-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+                purchase_datetime: new Date(),
+                purchaser: req.user.email,
+                products: productosParaFacturar.map(item => ({
+                    pid: item.product._id,
+                    title: item.product.title,
+                    price: item.product.price,
+                    quantity: item.quantity,
+                    subtotal: item.product.price * item.quantity
+                })),
+                amount: totalAmount
+            });
+
+            await cartService.updateCart(cid, productosRestantes);
+
+            return res.status(200).json({
+                message: "Compra realizada exitosamente",
+                ticket
+            });
+        } catch (error) {
+            return next(error)
+        }
+    };
 }

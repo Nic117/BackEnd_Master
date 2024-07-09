@@ -1,11 +1,14 @@
 import passport from "passport";
 import passportJWT from "passport-jwt";
 import local from "passport-local";
-import UserManager from "../dao/UsersDAO.js";
-import { SECRET, generaHash, validaPassword } from "../utils.js";
-import github from "passport-github2";
-import CartManager from "../dao/CartDAO.js";
+import github from "passport-github2"
+
+import { generaHash, validaPassword } from "../utils/utils.js";
 import { config } from "./config.js";
+
+import UserManager from "../dao/UsersDAO.js";
+import CartManager from "../dao/CartDAO.js";
+
 
 // Instancia de los manejadores de usuarios y carritos
 const cartManager = new CartManager();

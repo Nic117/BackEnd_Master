@@ -31,12 +31,12 @@ dotenv.config({
 });
 
 // Imprime las variables de entorno cargadas
-console.log("PORT:", process.env.PORT);
-console.log("MONGO_URL:", process.env.MONGO_URL);
-console.log("DB_NAME:", process.env.DB_NAME);
-console.log("SECRET:", process.env.SECRET);
-console.log("CLIENT_ID_GITHUB:", process.env.CLIENT_ID_GITHUB);
-console.log("CLIENT_SECRET_GITHUB:", process.env.CLIENT_SECRET_GITHUB);
+// console.log("PORT:", process.env.PORT);
+// console.log("MONGO_URL:", process.env.MONGO_URL);
+// console.log("DB_NAME:", process.env.DB_NAME);
+// console.log("SECRET:", process.env.SECRET);
+// console.log("CLIENT_ID_GITHUB:", process.env.CLIENT_ID_GITHUB);
+// console.log("CLIENT_SECRET_GITHUB:", process.env.CLIENT_SECRET_GITHUB);
 
 // Exporta la configuración para ser utilizada en otros módulos
 export const config = {
