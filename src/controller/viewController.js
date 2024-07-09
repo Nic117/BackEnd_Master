@@ -1,82 +1,77 @@
 import { productsModelo } from '../dao/models/productsModelo.js';
 import { cartService } from "../services/cartService.js";
 import { productService } from "../services/productService.js";
-
-const handleServerError = (res, error) => {
-    console.error(error);
-    res.setHeader('Content-Type', 'application/json');
-    res.status(500).json({ error: "Error interno del servidor - Intente más tarde, o contacte a su administrador" });
-};
-
-const setResponseHeaders = (res, type = 'text/html') => {
-    res.setHeader('Content-Type', type);
-};
+import { CustomError } from '../utils/CustomError.js';
+import { TIPOS_ERROR } from '../utils/EErrors.js';
 
 export class ViewController {
-    static getProducts = async (req, res) => {
+    static async getProducts(req, res) {
         try {
             const products = await productService.getProducts();
-            setResponseHeaders(res);
+            res.setHeader('Content-Type', 'text/html');
             res.status(200).render('home', { products });
         } catch (error) {
-            handleServerError(res, error);
+            ViewController.handleServerError(res, error);
         }
     }
 
-    static getRealTimeProducts = async (req, res) => {
+    static async getRealTimeProducts(req, res) {
         try {
             const products = await productService.getProducts();
-            setResponseHeaders(res);
+            res.setHeader('Content-Type', 'text/html');
             res.status(200).render('realTime', { products });
         } catch (error) {
-            handleServerError(res, error);
+            ViewController.handleServerError(res, error);
         }
     }
 
-    static getChat = (req, res) => {
+    static getChat(req, res) {
         try {
-            setResponseHeaders(res);
+            res.setHeader("Content-Type", "text/html");
             res.status(200).render("chat");
         } catch (error) {
-            handleServerError(res, error);
+            ViewController.handleServerError(res, error);
         }
     }
 
-    static getProductsPaginate = async (req, res) => {
-        const { page = 1, limit = 10, sort, category, title, stock } = req.query;
-        const user = req.user;
-        const cart = { _id: user.cart };
-
+    static async getProductsPaginate(req, res, next) {
         try {
+            const { page = 1, limit = 10, sort } = req.query;
+
             const options = {
                 page: Number(page),
                 limit: Number(limit),
                 lean: true,
-                sort: sort === "asc" || sort === "desc" ? { price: sort === "asc" ? 1 : -1 } : undefined,
             };
 
             const searchQuery = {};
-            if (category) searchQuery.category = category;
-            if (title) searchQuery.title = { $regex: title, $options: "i" };
-            if (stock) {
-                const stockNumber = parseInt(stock);
-                if (!isNaN(stockNumber)) searchQuery.stock = stockNumber;
+
+            if (req.query.category) {
+                searchQuery.category = req.query.category;
+            }
+
+            if (req.query.title) {
+                searchQuery.title = { $regex: req.query.title, $options: "i" };
+            }
+
+            if (req.query.stock) {
+                const stockNumber = parseInt(req.query.stock);
+                if (!isNaN(stockNumber)) {
+                    searchQuery.stock = stockNumber;
+                }
+            }
+
+            if (sort === "asc" || sort === "desc") {
+                options.sort = { price: sort === "asc" ? 1 : -1 };
             }
 
             const products = await productService.getProductsPaginate(searchQuery, options);
-            const baseUrl = req.originalUrl.split("?")[0];
-            const { prevPage, nextPage } = products;
-            const sortParam = sort ? `&sort=${sort}` : "";
-            const prevLink = prevPage ? `${baseUrl}?page=${prevPage}${sortParam}` : null;
-            const nextLink = nextPage ? `${baseUrl}?page=${nextPage}${sortParam}` : null;
+            const { prevPage, nextPage, prevLink, nextLink } = ViewController.buildLinks(req, products);
             const categories = await productsModelo.distinct("category");
 
-            if (isNaN(parseInt(page)) || parseInt(page) < 1 || parseInt(page) > products.totalPages) {
-                return res.status(400).json({ error: "Page fuera de rango o inválida" });
-            }
+            ViewController.validatePageNumber(req, products);
 
-            setResponseHeaders(res);
-            return res.render("products", {
+            res.render("products", {
                 status: "success",
                 payload: products.docs,
                 totalPages: products.totalPages,
@@ -88,48 +83,81 @@ export class ViewController {
                 prevLink,
                 nextLink,
                 categories,
-                cart,
-                user,
-                login: user
+                cart: { _id: req.user.cart },
+                user: req.user,
+                login: req.user
             });
         } catch (error) {
-            handleServerError(res, error);
+            next(error);
         }
     }
 
-    static getCartById = async (req, res) => {
-        const cid = req.params.cid;
-
+    static async getCartById(req, res) {
         try {
+            res.setHeader('Content-Type', 'text/html');
+            const cid = req.params.cid;
             const cart = await cartService.getCartsBy({ _id: cid });
+
             if (cart) {
-                setResponseHeaders(res);
                 res.status(200).render("cart", { cart });
             } else {
-                res.status(404).json({ error: `No existe un carrito con el ID: ${cid}` });
+                throw new CustomError("El carrito no existe", `No existe un carrito con el ID: ${cid}`, TIPOS_ERROR.ARGUMENTOS_INVALIDOS);
             }
         } catch (error) {
-            handleServerError(res, error);
+            ViewController.handleServerError(res, error);
         }
     }
 
-    static register = (req, res) => {
+    static register(req, res) {
+        res.setHeader('Content-Type', 'text/html');
+        console.log('Parámetros de consulta para registro:', req.query);
         const { error } = req.query;
-        setResponseHeaders(res);
         res.status(200).render('register', { error });
     }
 
-    static login = (req, res) => {
+    static login(req, res) {
+        res.setHeader('Content-Type', 'text/html');
         const { error, message } = req.query;
-        setResponseHeaders(res);
         res.status(200).render('login', { error, message, login: req.user });
     }
 
-    static getProfile = (req, res) => {
-        setResponseHeaders(res);
+    static getProfile(req, res) {
+        res.setHeader('Content-Type', 'text/html');
         res.status(200).render('profile', {
             user: req.user,
             login: req.user
         });
+    }
+
+    static handleServerError(res, error) {
+        console.error('Error en la vista:', error);
+        res.setHeader('Content-Type', 'application/json');
+        res.status(500).json({ error: 'Error en el servidor' });
+    }
+
+    static buildLinks(req, products) {
+        const { prevPage, nextPage } = products;
+        const baseUrl = req.originalUrl.split("?")[0];
+        const sortParam = req.query.sort ? `&sort=${req.query.sort}` : "";
+
+        const prevLink = prevPage ? `${baseUrl}?page=${prevPage}${sortParam}` : null;
+        const nextLink = nextPage ? `${baseUrl}?page=${nextPage}${sortParam}` : null;
+
+        return {
+            prevPage: prevPage ? parseInt(prevPage) : null,
+            nextPage: nextPage ? parseInt(nextPage) : null,
+            prevLink,
+            nextLink,
+        };
+    }
+
+    static validatePageNumber(req, products) {
+        const requestedPage = parseInt(req.query.page);
+        if (isNaN(requestedPage)) {
+            throw new CustomError("Page is NaN", "Page debe ser un número", TIPOS_ERROR.ARGUMENTOS_INVALIDOS);
+        }
+        if (requestedPage < 1 || requestedPage > products.totalPages) {
+            throw new CustomError("Cantidad de páginas inválidas", "Lo sentimos, el sitio aún no cuenta con tantas páginas", TIPOS_ERROR.ARGUMENTOS_INVALIDOS);
+        }
     }
 }

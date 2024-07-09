@@ -1,9 +1,12 @@
 import { isValidObjectId } from "mongoose";
 import { io } from "../app.js";
 import { productService } from "../services/productService.js";
+import { fakerES_MX as faker, ne } from "@faker-js/faker";
+import { CustomError } from "../utils/CustomError.js";
+import { TIPOS_ERROR } from "../utils/EErrors.js";
 
 export class ProductController {
-    static getProducts = async (req, res) => {
+    static getProducts = async (req, res, next) => {
         try {
             const { page = 1, limit = 10, sort } = req.query;
 
@@ -66,9 +69,7 @@ export class ProductController {
             }
 
             if (requestedPage > products.totalPages) {
-                return res
-                    .status(404)
-                    .json({ error: "La página solicitada está fuera de rango" });
+                CustomError.createError("Error", "No existe la página", "La página solicitada está fuera de rango", TIPOS_ERROR.NOT_FOUND)
             }
 
             const response = {
@@ -86,16 +87,14 @@ export class ProductController {
 
             return res.status(200).send(response);
         } catch (error) {
-            console.log(error);
-            res.status(500).json({ error: "Error interno del servidor" });
+            return next(error);
         }
     }
 
-    static getProductById = async (req, res) => {
+    static getProductById = async (req, res, next) => {
         let id = req.params.pid;
         if (!isValidObjectId(id)) {
-            res.setHeader('Content-Type', 'application/json');
-            return res.status(400).json({ error: `Ingrese un ID válido de MONGODB` })
+            CustomError.createError("Error", "ID inválido", "Ingrese un ID válido de MONGODB", TIPOS_ERROR.ARGUMENTOS_INVALIDOS)
         }
         try {
             res.setHeader('Content-Type', 'application/json');
@@ -104,32 +103,33 @@ export class ProductController {
             if (product) {
                 res.status(200).json(product);
             } else {
-                return res.status(404).json({ error: `No existe un producto con el ID: ${id}` });
+                CustomError.createError("Error", "ID incorrecto", `No existe un producto con el ID: ${id}`, TIPOS_ERROR.NOT_FOUND)
             }
 
         } catch (error) {
-            res.status(500).json({ error: `Error inesperado en el servidor`, detalle: `${error.message}` });
+            return next(error)
         }
     }
 
-    static createProduct = async (req, res) => {
+    static createProduct = async (req, res, next) => {
         let nuevoProducto
         try {
             const { title, description, price, thumbnail, code, stock, category } = req.body;
 
             if (!title || !description || !price || !thumbnail || !code || !stock || !category) {
-                return res.status(400).json({ error: 'Todos los campos son obligatorios' });
+                CustomError.createError("Error", "No se completaron los campos obligatorios", "Todos los campos son obligatorios", TIPOS_ERROR.ARGUMENTOS_INVALIDOS)
             }
+
             if (typeof price !== 'number' || typeof stock !== 'number') {
-                return res.status(400).json({ error: 'El precio y el stock deben ser números' })
+                CustomError.createError("Error", "Precio y stock NaN", "El precio y stock deben ser valores numéricos", TIPOS_ERROR.ARGUMENTOS_INVALIDOS)
             }
 
             const codeRepeat = await productService.getProductsBy({ code })
 
             if (codeRepeat) {
-                return res.status(400).json({ error: `Error, el código ${code} se está repitiendo` });
+                CustomError.createError("Error", "Código repetido", `Error, el código ${code} se está repitiendo`, TIPOS_ERROR.ARGUMENTOS_INVALIDOS)
             }
-            
+
             nuevoProducto = await productService.createProduct({ title, description, price, thumbnail, code, stock, category })
             io.emit("newProduct", title)
             res.setHeader('Content-Type', 'application/json');
@@ -137,24 +137,17 @@ export class ProductController {
 
 
         } catch (error) {
-            res.setHeader('Content-Type', 'application/json');
-            return res.status(500).json(
-                {
-                    error: `Error en el servidor - Intente más tarde, o contacte a su administrador`,
-                    detalle: `${error.message}`
-                }
-            )
+            return next(error)
         }
     }
 
-    static updateProduct = async (req, res) => {
+    static updateProduct = async (req, res, next) => {
         let id = req.params.pid;
 
         try {
 
             if (!isValidObjectId(id)) {
-                res.setHeader('Content-Type', 'application/json');
-                return res.status(400).json({ error: `Ingrese un ID válido de MONGODB` })
+                CustomError.createError("Error", "ID inválido", "Ingrese un ID válido de MONGODB", TIPOS_ERROR.ARGUMENTOS_INVALIDOS)
             }
 
             res.setHeader('Content-Type', 'application/json');
@@ -172,49 +165,38 @@ export class ProductController {
                     exist = await productService.getProductsBy({ code: updateData.code })
                     if (exist) {
                         res.setHeader('Content-Type', 'application/json');
-                        return res.status(400).json({ error: `Ya existe otro producto con codigo ${updateData.code}` })
+                        CustomError.createError("Error", "Código repetido", `Ya existe otro producto con codigo ${updateData.code}`, TIPOS_ERROR.ARGUMENTOS_INVALIDOS)
                     }
                 } catch (error) {
-                    res.setHeader('Content-Type', 'application/json');
-                    return res.status(500).json(
-                        {
-                            error: `${error.message}`
-                        }
-                    )
+                    return next(error)
                 }
             }
 
             if ((stock !== undefined && isNaN(stock)) || (price !== undefined && isNaN(price))) {
-                return res.status(400).json({ error: "Stock y precio deben ser números" });
+                CustomError.createError("Error", "Stock y/o precio NaN", "Stock y precio deben ser números", TIPOS_ERROR.ARGUMENTOS_INVALIDOS)
             }
 
             try {
                 let productoModificado = await productService.updateProduct(id, updateData);
                 return res.status(200).json(`El producto ${id} se ha modificado: ${productoModificado}`);
             } catch (error) {
-                res.status(300).json({ error: `Error al modificar el producto`, detalle: `${error.message}` });
+                CustomError.createError("Error", "Error al modificar el producto", "Error al modificar el producto", TIPOS_ERROR.ARGUMENTOS_INVALIDOS)
             }
         } catch (error) {
-            res.setHeader('Content-Type', 'application/json');
-            return res.status(500).json(
-                {
-                    error: `Error inesperado en el servidor`,
-                    detalle: `${error.message}`
-                }
-            )
+            return next(error)
         }
     }
 
-    static deleteProduct = async (req, res) => {
+    static deleteProduct = async (req, res, next) => {
         let id = req.params.pid;
 
         if (!isValidObjectId(id)) {
-            return res.status(400).json({ error: `Ingrese un ID válido de MONGODB` })
+            CustomError.createError("Error", "ID inválido", "Ingrese un ID válido de MONGODB", TIPOS_ERROR.ARGUMENTOS_INVALIDOS)
         }
 
         const product = await productService.getProductsBy({ _id: id });
         if (!product) {
-            return res.status(404).json({ error: `No existe un producto con el ID: ${id}` });
+            CustomError.createError("Error", "No se encuentra el producto", `No existe un producto con el ID: ${id}`, TIPOS_ERROR.NOT_FOUND)
         }
         try {
             const deletedProduct = await productService.deleteProduct(id);
@@ -223,19 +205,39 @@ export class ProductController {
                 io.emit("deletedProduct", products);
                 return res.status(200).json({ payload: `El producto con id ${id} fue eliminado` });
             } else {
-                return res.status(400).json({ error: `No existe ningun producto con el id ${id}` })
+                CustomError.createError("Error", "No se encuentra el producto", `No existe ningun producto con el id ${id}`, TIPOS_ERROR.ARGUMENTOS_INVALIDOS)
             }
 
         } catch (error) {
+            return next(error)
+        }
+    }
+
+    static mock = async (req, res) => {
+        try {
+            let products = [];
+            let number = 1
+            for (let i = 0; i < 100; i++) {
+                products.push({
+                    productNumber: number++,
+                    status: faker.datatype.boolean(0.9),
+                    title: faker.commerce.productName(),
+                    description: faker.commerce.productDescription(),
+                    price: faker.commerce.price({ symbol: '$' }),
+                    thumbnail: faker.image.url(),
+                    code: `C-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+                    stock: faker.number.int({ min: 0, max: 100 }),
+                    category: faker.commerce.department()
+                })
+            }
+            return res.status(200).json(products);
+        } catch (error) {
             return res.status(500).json(
                 {
-                    error: `Error inesperado en el servidor`,
+                    error: `Error inesperado en el servidor - Intente más tarde, o contacte a su administrador`,
                     detalle: `${error.message}`
                 }
             )
-
         }
-
-
     }
 }
