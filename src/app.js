@@ -8,11 +8,13 @@ import __dirname from "./utils/utils.js";
 import cookieParser from "cookie-parser";
 import { config } from "./config/config.js";
 import { engine } from "express-handlebars";
+import { logger, middLogger } from './utils/Logger.js';
 import { initPassport } from "./config/passport.config.js";
 import { errorHandler } from './middleware/errorHandler.js';
 
 import { messageModelo } from "./dao/models/messageModelo.js";
 import { router as cartRouter } from './routes/cartRouter.js';
+import { router as loggerRouter } from './routes/loggerRouter.js';
 import { router as vistasRouter } from './routes/vistas.router.js';
 import { router as productRouter } from './routes/productRouter.js';
 import { router as sessionsRouter } from './routes/sessionRouter.js';
@@ -33,11 +35,13 @@ app.use(cors());
 
 initPassport()
 app.use(passport.initialize())
+app.use(middLogger)
 
 app.use('/', vistasRouter);
 app.use('/api/product', productRouter);
 app.use('/api/carts', cartRouter);
-app.use('/api/sessions', sessionsRouter)
+app.use('/api/sessions', sessionsRouter);
+app.use('/loggerTest', loggerRouter)
 
 app.use(errorHandler);
 
@@ -47,7 +51,9 @@ const server = app.listen(PORT, () => {
     console.log(`Server escuchando en puerto ${PORT}`);
 });
 
-
+process.on("uncaughtException", error => {
+    logger.error(error.message, "Error no controlado")
+})
 
 export const io = new Server(server);
 

@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="/src/public/assets/css/styles.css">
 </head>
 <body>
- <ul>
+<ul>
     <li><a href="/">Inicio</a></li>
     {{#if login}}
     <li><a href="/profile">Perfil</a></li>
@@ -17,12 +17,12 @@
     <li><a href="/carts/{{cart._id}}">Ver carrito</a></li>
 
 </ul>
-<button><a href="/api/sessions/logout">Logout</a></button>
+<button><a href="/api/sessions/logout">Cerrar Session</a></button>
 {{else}}
 <li><a href="/register">Registro</a></li>
 <li><a href="/login">Login</a></li>
 {{/if}}
-</ul>tton><a href="/api/sessions/logout">Logout</a></button>
+</ul>
 
 </body>
 </html>

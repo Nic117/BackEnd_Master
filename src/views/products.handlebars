@@ -10,16 +10,21 @@
 <body>
    <h2>Productos</h2>
    <hr><br>{{>menu}}<br>
+
    {{#if user}}
        <p><strong>Bienvenido: {{user.first_name}}</strong></p>
    {{/if}}
-  <h3>Categoría</h3>   
-   <ul name="" id="">
-       <li><a href="/products">Todos</a></li>
-       {{#each categories}}
-           <li><a href="/products?category={{this}}">{{this}}</a></li>
-       {{/each}}
-   </ul>
+  <h3>Categoría</h3> 
+
+ <div>
+    <select id="categorySelect">
+        <option value="/products">Todos</option>
+        {{#each categories}}
+        <option style="text-transform: capitalize" value="/products?category={{this}}">{{this}}</option>
+        {{/each}}
+    </select>
+</div>
+
    <input type="text" value="{{cart._id}}" hidden id="cart">
 
    <div>
