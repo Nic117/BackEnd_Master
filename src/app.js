@@ -6,13 +6,16 @@ import passport from "passport";
 import { Server } from "socket.io";
 import __dirname from "./utils/utils.js";
 import cookieParser from "cookie-parser";
+import swaggerUi from 'swagger-ui-express';
 import { config } from "./config/config.js";
 import { engine } from "express-handlebars";
+import { specs } from './utils/SwaggerConfig.js';
 import { logger, middLogger } from './utils/Logger.js';
 import { initPassport } from "./config/passport.config.js";
 import { errorHandler } from './middleware/errorHandler.js';
 
 import { messageModelo } from "./dao/models/messageModelo.js";
+import { router as userRouter } from './routes/userRouter.js';
 import { router as cartRouter } from './routes/cartRouter.js';
 import { router as loggerRouter } from './routes/loggerRouter.js';
 import { router as vistasRouter } from './routes/vistas.router.js';
@@ -23,6 +26,7 @@ import { router as sessionsRouter } from './routes/sessionRouter.js';
 
 const PORT = config.PORT;
 const app = express();
+
 app.engine('handlebars', engine());
 app.set('view engine', 'handlebars');
 app.set('views', path.join(__dirname, '/views'));
@@ -41,7 +45,9 @@ app.use('/', vistasRouter);
 app.use('/api/product', productRouter);
 app.use('/api/carts', cartRouter);
 app.use('/api/sessions', sessionsRouter);
+app.use('/api/users', userRouter);
 app.use('/loggerTest', loggerRouter)
+app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(specs));
 
 app.use(errorHandler);
 
