@@ -10,7 +10,6 @@ import { userModel } from "../src/dao/models/userModel.js";
 
 const requester = supertest(app);
 
-
 const connDB = async () => {
     console.log("Conectando a la base de datos de pruebas...");
     await mongoose.connect(config.MONGO_TEST_URL, { dbName: config.DB_NAME_TEST })
