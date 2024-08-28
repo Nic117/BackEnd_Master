@@ -1,0 +1,273 @@
+components:
+  schemas:
+    
+    Product:
+      type: object
+      properties:
+        _id:
+          type: string
+          description: ID de MongoDB
+        title:
+          type: string
+          description: Nombre del producto
+        description:
+          type: string
+          description: Descripción del producto
+        price: 
+          type: number
+          description: Precio del producto
+        thumbnail:
+          type: array
+          items:
+            type: string
+          description: Url del producto
+        code:
+          type: string
+          description: Código único del producto
+        stock:
+          type: number
+          description: Stock disponible
+        category:
+          type: string
+          description: Categoría del producto
+        owner:
+          type: string
+          description: Propietario del producto
+        status:
+          type: boolean
+          description: Estado del producto
+        __v: 
+          type: string
+          description: Versión del documento en MongoDB
+        createdAt:  
+          type: date-time
+          description: Momento en el que fue creado
+        updatedAt:
+          type: date-time
+          description: Momento en el que fue actualizado
+      example:
+        _id: "6635a4359a91d1aaa6e1fb62"
+        title: "Mouse Logitech G305 Lightspeed Inalambrico"
+        description: "Para trabajar desde casa con la computadora o aprovechar los momentos de ocio, necesitás comodidad y facilidad de movimiento. Con tu Logitech G Lightspeed encontrá eso que buscás en un solo aparato con la mejor tecnología. Adaptado a tus movimientos: Su diseño eficaz hace de este mouse un elemento cómodo, con una gran experiencia de uso para aquellas personas que buscan seguridad en cada click. La funcionalidad al alcance de tu mano: El sistema de detección de movimiento óptico te permitirá mover el cursor de una manera más precisa y sensible que en los sistemas tradicionales. Plug And Play: Solo debés colocar el receptor en un puerto USB de la computadora y ya podés empezar a usarlo. No hace falta emparejar el mouse ni descargar software para utilizarlo. Tecnología inalámbrica: Trabajá de forma inalámbrica y movete libremente sin ninguna interrupción. Al no haber cables, tu escritorio se mantiene despejado. Y además, podés llevar tu mouse fácilmente de un espacio de trabajo a otro. Apto para fácil traslado: Navegá rápidamente por documentos y páginas web gracias su diseño ultra delgado, ergonómico, liviano y conveniente para llevar a donde quieras o viajar."
+        price: 57807
+        thumbnail: ["https://www.compugarden.com.ar/Temp/App_WebSite/App_PictureFiles/Items/910-005281_800.jpg"]
+        code: "26"
+        stock: 7
+        category: "mouses"
+        owner: admin
+        status: true
+        __v: 0
+        createdAt: "2024-05-04T02:57:57.213Z"
+        updatedAt: "2024-06-25T23:25:08.867Z"
+
+    updateProduct:
+      type: object
+      properties:
+        title:
+          type: string
+          description: Título del producto
+        description:
+          type: string
+          description: Descripción del producto
+        price:
+          type: number
+          description: Precio del producto
+        thumbnails:
+          type: array
+          items:
+            type: string
+          description: URLs de las imágenes del producto
+        code:
+          type: string
+          description: Código del producto
+        stock:
+          type: number
+          description: Stock del producto
+        category:
+          type: string
+          description: Categoría del producto
+        status:
+          type: boolean
+          description: Estado del producto
+        owner:
+          type: string
+          description: Propietario del producto
+      example:
+        example:
+        _id: "6635a4359a91d1aaa6e1fb62"
+        title: "Mouse Logitech G305 Lightspeed Inalambrico"
+        description: "Para trabajar desde casa con la computadora o aprovechar los momentos de ocio, necesitás comodidad y facilidad de movimiento. Adaptado a tus movimientos: Su diseño eficaz hace de este mouse un elemento cómodo, con una gran experiencia de uso para aquellas personas que buscan seguridad en cada click. Apto para fácil traslado: Navegá rápidamente por documentos y páginas web gracias su diseño ultra delgado, ergonómico, liviano y conveniente para llevar a donde quieras o viajar."
+        price: 57807
+        thumbnail: ["https://www.compugarden.com.ar/Temp/App_WebSite/App_PictureFiles/Items/910-005281_800.jpg"]
+        code: "26"
+        stock: 213
+        category: "mouses"
+        owner: admin
+        status: true
+        __v: 0
+        createdAt: "2024-05-04T02:57:57.213Z"
+        updatedAt: "2024-06-25T23:25:08.867Z"
+
+    Cart:
+      type: object
+      properties:
+        _id:
+          type: string
+          description: ID de MongoDB
+        products:
+          type: array
+          items:
+            $ref: "#/components/schemas/CartProducts"
+        __v:
+          type: number
+          description: Versión del documento en MongoDB
+        createdAt:  
+          type: date-time
+          description: Momento en el que fue creado
+        updatedAt:
+          type: date-time
+          description: Momento en el que fue actualizado
+      example:
+        _id: 66352f1c2ffc6c230910172b
+        products:
+          - product:
+              _id: 6635a4359a91d1aaa6e1fb4a
+              status: true
+              title: HD HDD 2TB SEAGATE SKYHAWK SATA III 3.5'
+              description: Disfruta de una velocidad y rendimiento de nueva generación con nuestra biblioteca digital más grande hasta la fecha. Disfruta de mundos más dinámicos y tiempos de carga más rápidos, y agrega Xbox Game Pass Ultimate (la suscripción se vende por separado) para jugar a títulos nuevos el mismo día de su lanzamiento. Además, disfruta de cientos de juegos de alta calidad, como Minecraft, Forza Horizon 5 y Halo Infinite, con amigos en consola, PC y la nube.
+              price: 119870
+              thumbnail: [https://www.fullh4rd.com.ar/thumbnail/productos/12/hd-hdd-2tb-seagate-skyhawk-sata-iii-35-0.jpg]
+              code: 2
+              stock: 14
+              category: discosrigidos
+              owner: admin
+              __v: 0
+              createdAt: 2024-05-04T02:57:57.212Z
+              updatedAt: 2024-05-04T02:57:57.212Z
+            quantity: 11
+            _id: 663bd849ea339a4f825d19c6
+        createdAt: 2024-05-03T18:38:20.276Z
+        updatedAt: 2024-05-08T20:19:25.722Z
+        __v: 1
+    
+    CartProducts:
+      type: object
+      properties:
+        product:
+          $ref: "#/components/schemas/Product"
+          quantity:
+            type: number
+            description: Cantidad de unidades del producto en carrito
+          _id:
+            type: string
+            description: ID de MongoDB
+    
+    Ticket:
+      type: object
+      properties:
+        _id:
+          type: string
+          description: ID de MongoDB
+        code:
+          type: string
+          description: Código de la orden
+        purchase_datetime:
+          type: string
+          description: Fecha de la orden
+          format: date-time
+        amount:
+          type: number
+          description: Monto de la orden
+        purchaser:
+          type: string
+          description: Email del comprador
+        products:
+          type: array
+          items:
+            $ref: "#/components/schemas/TicketProducts"
+      example:
+        _id: "66aadd93047a2105f378bfc5"
+        code: "T-1722473875445-cs7mbya"
+        purchaseDateTime: "2024-08-01T00:57:55.445Z"
+        amount: 31000
+        purchaser: "memeperez@test.com"
+        products:
+          - _id: "660725f2d49ab55bf9c00da3"
+            quantity: 2
+            name: "Campera chopera"
+
+    TicketProducts:
+      type: object
+      properties:
+        _id:
+          type: string
+          description: ID de MongoDB
+        quantity:
+          type: number
+          description: Unidades del producto en el ticket
+        title:
+          type: string
+          description: Nombre del producto en el ticket
+        price:
+          type: number
+          description: Precio del producto en el ticket
+        subtotal:
+          type: number
+          description: Subtotal del ticket
+    
+    response400:
+      type: object
+      properties:
+        code:
+          type: string
+          example: "BAD_REQUEST_ERROR"
+        message:
+          type: string
+          example: "El id o alguna propiedad especificada no son válidos"
+
+    response401:
+      type: object
+      properties:
+        code:
+          type: string
+          example: "UNAUTHORIZED_ERROR"
+        message:
+          type: string
+          example: "No se pudo autenticar el usuario"
+
+    response403:
+      type: object
+      properties:
+        code:
+          type: string
+          example: "FORBIDDEN_ERROR"
+        message:
+          type: string
+          example: "No tienes permiso para actualizar este producto/carrito"
+
+    response404:
+      type: object
+      properties:
+        code:
+          type: string
+          example: "NOT_FOUND_ERROR"
+        message:
+          type: string
+          example: "Producto con ID {pid} no encontrado / Carrito con ID {cid} no encontrado"
+
+      response500:
+        type: object
+        properties:
+          code:
+            type: string
+            example: "INTERNAL_SERVER_ERROR"
+          message:
+            type: string
+            example: "Error interno del servidor"
+      
+
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: codercookie

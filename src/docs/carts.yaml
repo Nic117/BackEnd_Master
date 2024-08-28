@@ -1,0 +1,431 @@
+paths:
+  /api/carts/:
+    get:
+      summary: Devuelve una lista de carritos
+      tags:
+        - Carts
+      responses:
+        "200":
+          description: Carritos obtenidos con éxito
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Cart"
+        "500":
+          description: Error interno del servidor
+    post:
+      summary: Creación de un carrito
+      tags:
+        - Carts
+      responses:
+        "200":
+          description: El carrito fue creado exitosamente
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Cart"
+        "500":
+          description: Error interno del servidor
+
+  /api/carts/{cid}:
+    get:
+      summary: Obtener un carrito por ID
+      tags:
+        - Carts
+      parameters:
+        - in: path
+          required: true
+          description: ID del carrito
+          name: cid
+          schema:
+            type: string
+            example: 66352f1c2ffc6c230910172b
+      responses:
+        "200":
+          description: El carrito fue obtenido exitosamente
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Cart"
+        "400":
+          description: El id o alguna propiedad especificada no son válidos
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response400"
+        "404":
+          description: Carrito no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response404"
+        "500":
+          description: Error interno del servidor
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response500"
+
+    put:
+      summary: Actualizar los productos dentro de un carrito
+      tags:
+        - Carts
+      security:
+        - cookieAuth: []
+      parameters:
+        - in: path
+          required: true
+          description: ID del carrito
+          name: cid
+          schema:
+            type: string
+            example: 66352f1c2ffc6c230910172b
+      requestBody:
+        description: Nuevos productos del carrito
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: "#/components/schemas/Product"
+      responses:
+        "200":
+          description: Carrito actualizado con éxito
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Cart"
+        "400":
+          description: El id o alguna propiedad especificada no son válidos
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response400"
+        "404":
+          description: Carrito no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response404"
+        "500":
+          description: Error interno del servidor
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response500"
+    delete:
+      summary: Eliminar todos los productos de un carrito por ID
+      tags:
+        - Carts
+      security:
+        - cookieAuth: []
+      parameters:
+        - in: path
+          required: true
+          description: ID del carrito
+          name: cid
+          schema:
+            type: string
+            example: 66352f1c2ffc6c230910172b
+      responses:
+        "200":
+          description: Carrito limpiado con éxito
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Cart"
+        "400":
+          description: El id o alguna propiedad especificada no son válidos
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response400"
+        "404":
+          description: Carrito no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response404"
+        "500":
+          description: Error interno del servidor
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response500"
+
+  /api/carts/{cid}/purchase:
+    get:
+      summary: Obtener la orden de compra
+      security:
+        - cookieAuth: []
+      tags:
+        - Carts
+      parameters:
+        - in: path
+          required: true
+          description: ID del carrito
+          name: cid
+          schema:
+            type: string
+            example: 66352f1c2ffc6c230910172b
+      responses:
+        "200":
+          description: Orden de compra obtenida con éxito
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "success"
+                  payload:
+                    type: object
+                    properties:
+                      ticket:
+                        $ref: "#/components/schemas/Cart"
+        "400":
+          description: El id o alguna propiedad especificada no son válidos
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response400"
+        "404":
+          description: Carrito no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response404"
+        "500":
+          description: Error interno del servidor
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response500"
+    post:
+      summary: Generar la orden de compra
+      security:
+        - cookieAuth: []
+      tags:
+        - Carts
+      parameters:
+        - in: path
+          required: true
+          description: ID del carrito
+          name: cid
+          schema:
+            type: string
+            example: 66352f1c2ffc6c230910172b
+      requestBody:
+        description: Detalles de la compra
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                products:
+                  type: array
+                  items:
+                    $ref: "#/components/schemas/Product"
+      responses:
+        "200":
+          description: Orden de compra generada con éxito
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "success"
+                  payload:
+                    type: object
+                    properties:
+                      ticket:
+                        $ref: "#/components/schemas/Cart"
+        "400":
+          description: El id o alguna propiedad especificada no son válidos
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response400"
+        "404":
+          description: Carrito no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response404"
+        "500":
+          description: Error interno del servidor
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response500"
+
+  /api/carts/{cid}/products/{pid}:
+    post:
+      summary: Agregar un producto al carrito
+      security:
+        - cookieAuth: []
+      tags:
+        - Carts
+      parameters:
+        - name: cid
+          in: path
+          required: true
+          description: ID del carrito
+          schema:
+            type: string
+        - name: pid
+          in: path
+          required: true
+          description: ID del producto
+          schema:
+            type: string
+      requestBody:
+        description: Cantidad de producto a agregar
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                quantity:
+                  type: number
+      responses:
+        "200":
+          description: Producto agregado con éxito
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Cart"
+        "400":
+          description: El id o alguna propiedad especificada no son válidos
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response400"
+        "401":
+          description: No se pudo autenticar el usuario
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response401"
+        "404":
+          description: Carrito no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response404"
+        "500":
+          description: Error interno del servidor
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response500"
+
+    put:
+      summary: Modificar la cantidad de un producto en el carrito
+      security:
+        - cookieAuth: []
+      tags:
+        - Carts
+      parameters:
+        - name: cid
+          in: path
+          required: true
+          description: ID del carrito
+          schema:
+            type: string
+        - name: pid
+          in: path
+          required: true
+          description: ID del producto
+          schema:
+            type: string
+      requestBody:
+        description: Nueva cantidad del producto
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                quantity:
+                  type: number
+      responses:
+        "200":
+          description: Cantidad modificada con éxito
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Cart"
+        "400":
+          description: El id o alguna propiedad especificada no son válidos
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response400"
+        "404":
+          description: Carrito no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response404"
+        "500":
+          description: Error interno del servidor
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response500"
+
+    delete:
+      summary: Eliminar un producto del carrito
+      security:
+        - cookieAuth: []
+      tags:
+        - Carts
+      parameters:
+        - name: cid
+          in: path
+          required: true
+          description: ID del carrito
+          schema:
+            type: string
+        - name: pid
+          in: path
+          required: true
+          description: ID del producto
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Producto eliminado con éxito
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Cart"
+        "400":
+          description: El id o alguna propiedad especificada no son válidos
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response400"
+        "500":
+          description: Error interno del servidor
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response500"
