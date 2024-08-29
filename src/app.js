@@ -1,82 +1,124 @@
-import cors from 'cors';
-import path from "path";
 import express from "express";
 import mongoose from "mongoose";
 import passport from "passport";
 import { Server } from "socket.io";
-import __dirname from "./utils/utils.js";
+import path from "path";
+import cors from 'cors';
 import cookieParser from "cookie-parser";
 import swaggerUi from 'swagger-ui-express';
-import { config } from "./config/config.js";
 import { engine } from "express-handlebars";
+
+import { config } from "./config/config.js";
+import __dirname from "./utils/utils.js";
 import { specs } from './utils/SwaggerConfig.js';
 import { logger, middLogger } from './utils/Logger.js';
 import { initPassport } from "./config/passport.config.js";
 import { errorHandler } from './middleware/errorHandler.js';
 
 import { messageModelo } from "./dao/models/messageModelo.js";
-import { router as userRouter } from './routes/userRouter.js';
-import { router as cartRouter } from './routes/cartRouter.js';
-import { router as loggerRouter } from './routes/loggerRouter.js';
 import { router as vistasRouter } from './routes/vistas.router.js';
 import { router as productRouter } from './routes/productRouter.js';
+import { router as cartRouter } from './routes/cartRouter.js';
 import { router as sessionsRouter } from './routes/sessionRouter.js';
-
-
+import { router as userRouter } from './routes/userRouter.js';
+import { router as loggerRouter } from './routes/loggerRouter.js';
+import { userService } from './services/userService.js';
 
 const PORT = config.PORT;
 const app = express();
 
+// Configuración de handlebars
 app.engine('handlebars', engine());
 app.set('view engine', 'handlebars');
 app.set('views', path.join(__dirname, '/views'));
 
+// Middlewares
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, '/public')));
-app.use(cookieParser())
+app.use(cookieParser());
 app.use(cors());
+app.use(middLogger);
+app.use(passport.initialize());
+initPassport();
 
-initPassport()
-app.use(passport.initialize())
-app.use(middLogger)
-
+// Rutas
 app.use('/', vistasRouter);
 app.use('/api/product', productRouter);
 app.use('/api/carts', cartRouter);
 app.use('/api/sessions', sessionsRouter);
 app.use('/api/users', userRouter);
-app.use('/loggerTest', loggerRouter)
+app.use('/loggerTest', loggerRouter);
 app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(specs));
 
+// Middleware de manejo de errores
 app.use(errorHandler);
 
-let usuarios = [];
+// Conexión a la base de datos
+const connectDB = async () => {
+    try {
+        await mongoose.connect(config.MONGO_URL, { dbName: config.DB_NAME });
+        logger.info("Conexión a MongoDB exitosa");
+    } catch (error) {
+        logger.error("Error al conectar a la base de datos:", error.message);
+    }
+};
 
+connectDB();
+
+// Inicialización del servidor y Socket.IO
 const server = app.listen(PORT, () => {
-    console.log(`Server escuchando en puerto ${PORT}`);
+    logger.info(`Servidor escuchando en el puerto ${PORT}`);
 });
 
-process.on("uncaughtException", error => {
-    logger.error(error.message, "Error no controlado")
-})
+process.on("uncaughtException", (error) => {
+    logger.error("Error no controlado:", error.message);
+});
 
 export const io = new Server(server);
 
 io.on("connection", (socket) => {
-    console.log(`Se conecto el cliente ${socket.id}`)
+    logger.info(`Cliente conectado: ${socket.id}`);
+
+    const emitUsers = async () => {
+        try {
+            const users = await userService.getAllUser();
+            socket.emit("users", users);
+        } catch (error) {
+            logger.error("Error al obtener usuarios:", error.message);
+        }
+    };
 
     socket.on("id", async (userName) => {
         usuarios[socket.id] = userName;
-        let messages = await messageModelo.find()
-        socket.emit("previousMessages", messages)
-        socket.broadcast.emit("newUser", userName)
-    })
+        const messages = await messageModelo.find();
+        socket.emit("previousMessages", messages);
+        socket.broadcast.emit("newUser", userName);
+    });
 
     socket.on("newMessage", async (userName, message) => {
-        await messageModelo.create({ user: userName, message: message })
-        io.emit("sendMessage", userName, message)
-    })
+        await messageModelo.create({ user: userName, message });
+        io.emit("sendMessage", userName, message);
+    });
+
+    socket.on("documentUploadSuccess", async ({ userId, documentType }) => {
+        const documents = await userService.getDocumentsByUserId(userId);
+        io.emit("documentsUpdated", { userId, documents });
+    });
+
+    socket.on("updateUserRole", async (userId) => {
+        try {
+            const user = await userService.getUserId({ _id: userId });
+            if (user) {
+                const newRole = user.rol === "premium" ? "user" : "premium";
+                await userService.updateUser(userId, { rol: newRole });
+                io.emit("userRoleUpdated", user);
+                await emitUsers();
+            }
+        } catch (error) {
+            logger.error("Error al actualizar el rol del usuario:", error.message);
+        }
+    });
 
     socket.on("disconnect", () => {
         const userName = usuarios[socket.id];
@@ -84,16 +126,7 @@ io.on("connection", (socket) => {
         if (userName) {
             io.emit("userDisconnected", userName);
         }
-    })
-})
+    });
+});
 
-const connDB = async () => {
-    try {
-        await mongoose.connect(config.MONGO_URL, { dbName: config.DB_NAME })
-        console.log("Mongoose activo")
-    } catch (error) {
-        console.log("Error al conectar a DB", error.message)
-    }
-}
-
-connDB()
+export { app, server };

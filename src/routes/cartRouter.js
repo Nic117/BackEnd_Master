@@ -4,20 +4,24 @@ import { CartController } from '../controller/cartController.js';
 
 export const router = Router();
 
-// Rutas públicas
-router.get('/', CartController.getCarts);
-router.get('/:cid', CartController.getCartsById);
-router.get('/:cid/purchase', CartController.getCartsById);
-router.post('/', CartController.createCart);
+router.get('/', CartController.getCarts)
 
-// Rutas con autenticación y autorización
-router.use('/:cid/products/:pid', verifyJWT, auth(["usuario"]));
+router.get('/:cid/purchase', verifyJWT, auth(["usuario", "premium"]), CartController.purchase)
 
-router.post('/:cid/products/:pid', CartController.addToCart);
-router.put('/:cid', CartController.updateCart);
-router.put('/:cid/products/:pid', CartController.updateQuantity);
-router.delete('/:cid', CartController.clearCart);
-router.delete('/:cid/products/:pid', CartController.deleteProductFromCart);
+router.get('/:cid', CartController.getCartsById)
 
-export default router;
+router.post("/:cid/purchase", verifyJWT, auth(["usuario", "premium"]), CartController.purchase)
+
+router.post('/', CartController.createCart)
+
+router.post('/:cid/products/:pid', verifyJWT, auth(["usuario", "premium"]), CartController.addToCart)
+
+router.put('/:cid', verifyJWT, auth(["usuario", "premium"]), CartController.updateCart)
+
+router.put('/:cid/products/:pid', verifyJWT, auth(["usuario", "premium"]), CartController.updateQuantity)
+
+router.delete('/:cid', verifyJWT, auth(["admin", "usuario", "premium"]), CartController.clearCart)
+
+router.delete('/:cid/products/:pid', verifyJWT, auth(["admin", "usuario", "premium"]), CartController.deleteProductFromCart);
+
 

@@ -1,37 +1,37 @@
-import ProductManager from "../dao/ProductDAO.js"
+import ProductManager from "../dao/ProductDAO.js";
 
 class ProductService {
     constructor(dao) {
-        this.dao = dao
+        this.dao = dao;
     }
 
-    getProducts = async () => {
-        return await this.dao.getProducts()
+    async getProducts() {
+        return this.dao.getProducts();
     }
 
-    getProductsPaginate = async (filter, options)=>{
-        return await this.dao.getProductsPaginate(filter, options)
+    async getProductsPaginate(filter, options) {
+        return this.dao.getProductsPaginate(filter, options);
     }
 
-    getSortProducts = async (sort)=>{
-        return await this.dao.getSortProducts(sort)
+    async getSortProducts(sort) {
+        return this.dao.getSortProducts(sort);
     }
 
-    createProduct= async (product)=>{
-        return await this.dao.createProduct(product)
+    async createProduct(product) {
+        return this.dao.createProduct(product);
     }
 
-    getProductsBy = async (filtro)=>{
-        return await this.dao.getProductsBy(filtro)
+    async getProductsBy(filtro) {
+        return this.dao.getProductsBy(filtro);
     }
 
-    updateProduct = async (id, updateData)=>{
-        return await this.dao.updateProduct(id, updateData)
+    async updateProduct(id, updateData) {
+        return this.dao.updateProduct(id, updateData);
     }
 
-    deleteProduct = async (id)=>{
-        return await this.dao.deleteProduct(id)
+    async deleteProduct(id) {
+        return this.dao.deleteProduct(id);
     }
 }
 
-export const productService = new ProductService(new ProductManager())
+export const productService = new ProductService(new ProductManager());

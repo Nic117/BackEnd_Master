@@ -1,12 +1,20 @@
 import { Router } from 'express';
 import { UserController } from '../controller/userController.js';
-export const router = Router()
+import { auth, verifyJWT } from '../middleware/auth.js';
+import upload from '../middleware/multer.js';
 
-router.get('/', UserController.getUsers)
+export const router = Router();
 
-router.get('/premium/:uid', UserController.userPremium)
+// Rutas de usuario
+router.get('/', UserController.getUsers);
 
-router.post("/resetPassword", UserController.resetPassword);
+router.get('/premium/:uid', verifyJWT, auth(["usuario", "premium"]), UserController.userPremium);
 
-router.put("/createnewpassword/:token", UserController.createNewPassword);
+router.post("/resetPassword", verifyJWT, auth(["usuario", "premium"]), UserController.resetPassword);
+
+router.put("/createnewpassword/:token", verifyJWT, auth(["usuario", "premium"]), UserController.createNewPassword);
+
+router.post("/:uid/documents", verifyJWT, auth(["admin", "usuario", "premium"]), upload.array("file"), UserController.uploadUserDocuments);
+
+router.delete("/", verifyJWT, auth(["admin"]), UserController.deleteUsers);
 

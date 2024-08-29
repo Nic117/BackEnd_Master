@@ -6,25 +6,17 @@ export const router = Router();
 
 // Rutas públicas
 router.get('/', ViewController.getProducts);
-router.get('/realtimeproducts', ViewController.getRealTimeProducts);
 router.get('/register', ViewController.register);
 router.get('/login', ViewController.login);
+router.get('/forgotpassword', ViewController.forgotPassword);
+router.get('/newpassword/:token', ViewController.generateNewPassword);
 
-// Middleware de autenticación y autorización para las rutas siguientes
-router.use(verifyJWT);
+// Rutas protegidas
+router.get('/realtimeproducts', ViewController.getRealTimeProducts);
+router.get('/products', verifyJWT, auth(["usuario", "premium"]), ViewController.getProductsPaginate);
+router.get('/carts/:cid', verifyJWT, ViewController.getCartById);
+router.get('/profile', verifyJWT, auth(["usuario", "admin", "premium"]), ViewController.getProfile);
+router.get('/chat', verifyJWT, auth(["usuario", "premium"]), ViewController.getChat);
 
-// Rutas protegidas para "usuario"
-router.use(auth(["usuario"]));
-
-router.get('/chat', ViewController.getChat);
-router.get('/products', ViewController.getProductsPaginate);
-router.get('/carts/:cid', ViewController.getCartById);
-
-// Rutas protegidas para "usuario" y "admin"
-router.use(auth(["usuario", "admin"]));
-
-router.get('/profile', ViewController.getProfile);
-
-export default router;
 
 
