@@ -3,74 +3,80 @@ import { SECRET } from '../utils/utils.js';
 import { UsersDTO } from '../dto/UsersDTO.js';
 import "express-async-errors";
 
-const COOKIE_NAME = "codercookie";
-const JWT_EXPIRES_IN = "1h";
-
 export class SessionController {
-    static logout = (req, res) => {
-        res.clearCookie(COOKIE_NAME, { httpOnly: true });
+    static clearCookieAndRespond(res, message, status = 200) {
+        res.clearCookie("codercookie", { httpOnly: true });
         res.setHeader("Content-Type", "application/json");
-        return res.status(200).json({ payload: "Sesión cerrada" });
+        return res.status(status).json({ payload: message });
     }
 
-    static error = (req, res, error) => {
+    static logout(req, res) {
+        return this.clearCookieAndRespond(res, "Sesion Cerrada");
+    }
+
+    static handleError(req, res, error) {
         const errorMessage = error?.message || 'Error desconocido';
         res.setHeader('Content-Type', 'application/json');
         return res.status(500).json({
-            error: `Error en el servidor`,
+            error: "Error en el servidor",
             detalle: errorMessage
         });
     }
 
-    static callbackGitHub = (req, res) => {
-        try {
-            const { first_name, email, rol, cart } = req.user;
-            const tokenData = { first_name, email, rol, cart };
-            const token = jwt.sign(tokenData, SECRET, { expiresIn: JWT_EXPIRES_IN });
-            res.cookie(COOKIE_NAME, token, { httpOnly: true });
-            res.setHeader('Content-Type', 'application/json');
-            return res.status(200).json({ payload: "Login correcto", user: req.user });
-        } catch (error) {
-            SessionController.error(req, res, error);
-        }
+    static generateToken(user) {
+        const tokenData = {
+            first_name: user.first_name,
+            email: user.email,
+            rol: user.rol,
+            cart: user.cart
+        };
+        return jwt.sign(tokenData, SECRET, { expiresIn: "1h" });
     }
 
-    static current = (req, res) => {
-        res.setHeader("Content-Type", "application/json");
+    static callbackGitHub(req, res) {
+        const token = this.generateToken(req.user);
+        res.cookie("codercookie", token, { httpOnly: true });
+        res.setHeader('Content-Type', 'application/json');
+        return res.status(200).json({ payload: "Login correcto", user: req.user });
+    }
+
+    static current(req, res) {
         const userDTO = new UsersDTO(req.user);
+        res.setHeader("Content-Type", "application/json");
         return res.status(200).json(userDTO);
     }
 
-    static register = async (req, res) => {
+    static async register(req, res) {
         try {
             const { web } = req.body;
-    
+
             if (web) {
-                res.redirect("/login");
+                return res.redirect("/login");
             } else {
-                res.setHeader('Content-Type', 'application/json');
-                return res.status(200).json({ payload: `Usuario creado exitosamente`, user: req.user });
+                return this.clearCookieAndRespond(res, "Usuario creado exitosamente");
             }
         } catch (error) {
-            SessionController.error(req, res, error);
+            console.error('Error en el registro:', error);
+            return this.handleError(req, res, error);
         }
     }
 
-    static login = async (req, res) => {
+    static async login(req, res) {
         try {
             const { web } = req.body;
             const user = { ...req.user };
-            const token = jwt.sign(user, SECRET, { expiresIn: JWT_EXPIRES_IN });
-            res.cookie(COOKIE_NAME, token, { httpOnly: true });
+            const token = this.generateToken(user);
+
+            res.cookie("codercookie", token, { httpOnly: true });
 
             if (web) {
-                res.redirect("/products");
+                return res.redirect("/products");
             } else {
                 res.setHeader('Content-Type', 'application/json');
                 return res.status(200).json({ payload: "Login correcto", user, token });
             }
         } catch (error) {
-            SessionController.error(req, res, error);
+            return this.handleError(req, res, error);
         }
     }
 }

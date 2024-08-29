@@ -7,33 +7,60 @@ import { CustomError } from "../utils/CustomError.js";
 import { logger } from "../utils/Logger.js";
 import nodemailer from 'nodemailer';
 
+const transporter = nodemailer.createTransport({
+    service: "gmail",
+    port: 587,
+    auth: {
+        user: "",
+        pass: "",
+    },
+});
+
+const validDocumentTypes = ["ID", "adress", "statement"];
+
+const updateUserDocumentRecords = async (uid, documents, avatar) => {
+    try {
+        let user = await userService.getUserId({ _id: uid });
+        if (!user) throw new Error("Usuario no encontrado.");
+
+        if (documents) {
+            documents.forEach(doc => {
+                if (!validDocumentTypes.includes(doc.docType)) {
+                    throw new Error(`Tipo de documento inválido: ${doc.docType}`);
+                }
+
+                const existingDocumentIndex = user.documents.findIndex(existingDoc => existingDoc.docType === doc.docType);
+                existingDocumentIndex !== -1 ? user.documents[existingDocumentIndex] = doc : user.documents.push(doc);
+            });
+        }
+
+        const update = { ...documents && { documents: user.documents }, ...avatar && { avatar } };
+        await userService.updateUser(uid, update);
+
+        return { message: "Documentos actualizados!" };
+    } catch (error) {
+        return { error: error.message };
+    }
+};
+
 export class UserController {
-    static async resetPassword(req, res, next) {
+
+    static resetPassword = async (req, res, next) => {
         const { email } = req.body;
         logger.info(`Restableciendo contraseña para el usuario: ${email}`);
 
         try {
-            const usuario = await userService.getUsersBy({ email });
-
+            let usuario = await userService.getUsersBy({ email });
             if (!usuario) {
                 logger.warn(`El email ${email} no está registrado`);
-                return next(CustomError.createError("resetPassword --> UserController", "Email no encontrado", "El correo electrónico no se encuentra registrado", TIPOS_ERROR.NOT_FOUND));
+                throw CustomError.createError("resetPassword --> UserController", "Email no encontrado", "El correo electrónico no se encuentra registrado", TIPOS_ERROR.NOT_FOUND);
             }
 
             const token = jwt.sign({ email: usuario.email, _id: usuario._id }, SECRET, { expiresIn: "1h" });
             res.cookie("usercookie", token, { httpOnly: true });
 
-            const transport = nodemailer.createTransport({
-                service: "gmail",
-                port: 587,
-                auth: {
-                    user: process.env.EMAIL_USER,
-                    pass: process.env.EMAIL_PASS,
-                },
-            });
-
-            await transport.sendMail({
-                from: `Recuperación de contraseña <${process.env.EMAIL_USER}>`,
+            await transporter.sendMail({
+                from: "Recuperación de contraseña <>",
                 to: email,
                 subject: "Código de recuperación de contraseña",
                 html: `
@@ -42,26 +69,25 @@ export class UserController {
                         <h3>No te preocupes, con solo dos pasos ya tendrás tu cuenta nuevamente.</h3>
                     </div>
                     <div>
-                        <p>Por favor, haz <a href="http://localhost:8080/newpassword/${token}">click aqui</a> para restablecer tu contraseña</p>
+                        <p>Por favor, haz <a href="http://localhost:8080/newpassword/${token}">click aquí</a> para restablecer tu contraseña</p>
                         <br>
-                        <p>El código para recuperar tu contraseña es: ${token}<br>Si no fuiste tú quién lo solicitó, ignora este mensaje.</p>
+                        <p>El código para recuperar tu contraseña es: ${token}<br>Si no fuiste tú quien lo solicitó, ignora este mensaje.</p>
                     </div>
-                `,
+                `
             });
 
             logger.info(`Correo de recuperación de contraseña enviado al usuario ${email}`);
-            res.setHeader("Content-Type", "text/html");
             res.status(200).json(`Recibirá un correo en ${usuario.email} para restablecer su contraseña`);
         } catch (error) {
-            next(error);
+            return next(error);
         }
-    }
+    };
 
-    static async createNewPassword(req, res, next) {
+    static createNewPassword = async (req, res, next) => {
         logger.info("Reiniciando la contraseña");
 
         if (!req.cookies.usercookie) {
-            return next(CustomError.createError("createNewPassword --> UserController", "Token inválido", "El token es inválido o ha expirado", TIPOS_ERROR.ARGUMENTOS_INVALIDOS));
+            return CustomError.createError("createNewPassword --> UserController", "Token inválido", "El token es inválido o ha expirado", TIPOS_ERROR.ARGUMENTOS_INVALIDOS);
         }
 
         const { password } = req.body;
@@ -69,26 +95,16 @@ export class UserController {
 
         try {
             const decoded = jwt.verify(token, SECRET);
-            const id = decoded._id;
-
-            const user = await userService.getUserId(id);
-            if (!user) {
-                return next(CustomError.createError("createNewPassword --> UserController", "Usuario no encontrado", "El usuario con el ID proporcionado no existe", TIPOS_ERROR.NOT_FOUND));
-            }
+            const user = await userService.getUserId(decoded._id);
+            if (!user) throw CustomError.createError("createNewPassword --> UserController", "Usuario no encontrado", "El usuario con el ID proporcionado no existe", TIPOS_ERROR.NOT_FOUND);
 
             if (validaPassword(password, user.password)) {
-                return next(CustomError.createError("createNewPassword --> UserController", "Contraseña repetida", "La nueva contraseña no puede ser igual a la anterior", TIPOS_ERROR.ARGUMENTOS_INVALIDOS));
+                throw CustomError.createError("createNewPassword --> UserController", "Contraseña repetida", "La nueva contraseña no puede ser igual a la anterior", TIPOS_ERROR.ARGUMENTOS_INVALIDOS);
             }
-
-            logger.info("La contraseña es válida, hasheando y actualizando");
 
             const hashedPassword = generaHash(password);
-            const updatedUser = await userService.updatePassword(id, hashedPassword);
-
-            if (!updatedUser) {
-                logger.error("Error al actualizar la contraseña del usuario");
-                return next(CustomError.createError("createNewPassword --> UserController", "Error al actualizar la contraseña", "Error al actualizar la contraseña del usuario", TIPOS_ERROR.INTERNAL_SERVER_ERROR));
-            }
+            const updatedUser = await userService.updatePassword(decoded._id, hashedPassword);
+            if (!updatedUser) throw CustomError.createError("createNewPassword --> UserController", "Error al actualizar la contraseña", "Error al actualizar la contraseña del usuario", TIPOS_ERROR.INTERNAL_SERVER_ERROR);
 
             res.clearCookie("usercookie");
             logger.info("Contraseña actualizada con éxito");
@@ -98,51 +114,112 @@ export class UserController {
                 logger.error('Token inválido o expirado');
                 res.status(400).json({ status: "error", message: "Token inválido o expirado" });
             } else {
-                next(error);
+                return next(error);
             }
         }
-    }
+    };
 
-    static async userPremium(req, res, next) {
+    static userPremium = async (req, res, next) => {
         const { uid } = req.params;
         logger.info(`Solicitud para cambiar el rol del usuario: ${uid}`);
 
         if (!isValidObjectId(uid)) {
-            return next(CustomError.createError("userPremium --> UserController", "ID inválido", "Ingrese un ID válido de MONGODB", TIPOS_ERROR.ARGUMENTOS_INVALIDOS));
+            throw CustomError.createError("userPremium --> UserController", "ID inválido", "Ingrese un ID válido de MONGODB", TIPOS_ERROR.ARGUMENTOS_INVALIDOS);
         }
 
         try {
-            const user = await userService.getUserId(uid);
-            if (!user) {
-                return next(CustomError.createError("userPremium --> UserController", "Usuario no encontrado", `No existe el usuario con id ${uid}`, TIPOS_ERROR.NOT_FOUND));
+            const user = await userService.getUserId({ _id: uid });
+            if (!user) throw CustomError.createError("userPremium --> UserController", "Usuario no encontrado", `No existe el usuario con id ${uid}`, TIPOS_ERROR.NOT_FOUND);
+
+            if (user.rol === "admin") {
+                user.rol = user.rol === "usuario" ? "premium" : "usuario";
+                const updatedUser = await userService.updateRol(uid, user.rol);
+                logger.info(`Usuario actualizado a rol: ${updatedUser.rol}`);
+                return res.status(200).send({ status: "success", updatedUser });
             }
 
-            if (!user.rol) {
-                logger.error(`El usuario no tiene la propiedad 'rol'`);
-                return next(CustomError.createError("userPremium --> UserController", "El usuario no tiene la propiedad 'rol'", "El usuario no tiene la propiedad 'rol'", TIPOS_ERROR.NOT_FOUND));
+            const missingDocs = validDocumentTypes.filter(doc => !user.documents.some(document => document.docType === doc));
+            if (missingDocs.length === 0) {
+                user.rol = user.rol === "usuario" ? "premium" : "usuario";
+                const updatedUser = await userService.updateRol(uid, user.rol);
+                logger.info(`Usuario actualizado a rol: ${updatedUser.rol}`);
+                res.status(200).send({ status: "success", updatedUser });
+            } else {
+                throw CustomError.createError("userPremium --> UserController", "Faltan documentos requeridos", `Faltan documentos requeridos: ${missingDocs.join(", ")}`, TIPOS_ERROR.ARGUMENTOS_INVALIDOS);
             }
-
-            logger.info(`Usuario obtenido: ${JSON.stringify(user)}`);
-
-            user.rol = user.rol === "usuario" ? "premium" : "usuario";
-
-            logger.info(`Nuevo rol del usuario: ${user.rol}`);
-
-            const updateUser = await userService.updateRol(uid, user.rol);
-            logger.info(`Usuario actualizado a rol: ${updateUser.rol}`);
-            res.status(200).send({ status: "success", updateUser });
         } catch (error) {
-            next(error);
+            return next(error);
         }
-    }
+    };
 
-    static async getUsers(req, res, next) {
+    static uploadUserDocuments = async (req, res, next) => {
         try {
-            const users = await userService.getAllUser();
-            res.status(200).json({ users });
+            logger.info(`Inicio del proceso de carga de documentos del usuario`);
+            const { uid } = req.params;
+            const { document_type } = req.query;
+            const uploadedFiles = req.files;
+
+            if (!uploadedFiles || uploadedFiles.length === 0) {
+                throw CustomError.createError("uploadUserDocuments --> UserController", "No se recibieron archivos", "Error en la subida de archivos", TIPOS_ERROR.ARGUMENTOS_INVALIDOS);
+            }
+
+            const documentsToSave = [];
+            let avatarToSave = null;
+
+            uploadedFiles.forEach((file) => {
+                const reference = file.fieldname === "file" && file.mimetype.startsWith("image")
+                    ? `/public/assets/img/profiles/${uid}/${file.filename}`
+                    : `/public/assets/documents/${uid}/${file.filename}`;
+
+                if (file.mimetype.startsWith("image")) {
+                    if (!avatarToSave) avatarToSave = { name: file.filename, reference };
+                } else {
+                    documentsToSave.push({ name: file.filename, reference, docType: document_type });
+                }
+            });
+
+            const response = await updateUserDocumentRecords(uid, documentsToSave, avatarToSave);
+            res.status(200).send({ status: "success", ...response });
         } catch (error) {
-            next(error);
+            return next(error);
         }
-    }
+    };
+
+    static getUsers = async (req, res) => {
+        const users = await userService.getAllUser();
+        res.status(200).json({ users });
+    };
+
+    static deleteUsers = async (req, res) => {
+        try {
+            const inactiveDateLimit = new Date();
+            inactiveDateLimit.setDate(inactiveDateLimit.getDate() - 2);
+            logger.info(`Fecha y hora de hace dos días: ${inactiveDateLimit}`);
+
+            const usersToDelete = await userService.getAllUsers({ last_connection: { $lt: inactiveDateLimit } });
+            logger.info(`Usuarios a eliminar: ${usersToDelete.length}`);
+
+            for (const user of usersToDelete) {
+                const message = `Hola ${user.first_name}, tu cuenta ha sido eliminada por inactividad.`;
+
+                if (user.email) {
+                    await transporter.sendMail({
+                        from: "Eliminación de cuenta <>",
+                        to: user.email,
+                        subject: "Cuenta eliminada por inactividad",
+                        html: `<p>${message}</p>`
+                    });
+                }
+
+                await userService.deleteUser({ _id: user._id });
+                logger.info(`Usuario ${user._id} eliminado correctamente.`);
+            }
+
+            res.status(200).json({ status: "success", message: "Usuarios inactivos eliminados" });
+        } catch (error) {
+            logger.error("Error al eliminar usuarios inactivos:", error);
+            res.status(500).json({ status: "error", message: "Error al eliminar usuarios inactivos." });
+        }
+    };
 }
 
