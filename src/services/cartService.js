@@ -4,33 +4,24 @@ class CartService {
     constructor(dao) {
         this.dao = dao;
     }
-    async getCart(id) {
-        return await this.dao.getCart(id);
-    }
-    async createCart() {
-        return await this.dao.createCart();
-    }
-    async getCartsBy(filtro = {}) {
-        return await this.dao.getCartsBy(filtro);
-    }
-    async getCartsProducts(id) {
-        return await this.dao.getCartsProducts(id);
-    }
-    async addProductToCart(id, product) {
-        return await this.dao.addProductToCart(id, product);
-    }
-    async updateCart(cid, products) {
-        return await this.dao.updateCart(cid, products);
-    }
-    async updateProductQ(id, product, quantity) {
-        return await this.dao.updateProductQ(id, product, quantity);
-    }
-    async deleteAllProductsFromCart(cid) {
-        return await this.dao.deleteAllProductsFromCart(cid);
-    }
-    async deleteProductFromCart(cid, pid) {
-        return await this.dao.deleteProductFromCart(cid, pid);
-    }
+
+    getCarts = async (id) => await this.dao.getCarts(id);
+
+    createCart = async () => await this.dao.createCart();
+
+    getCartsBy = async (filtro = {}) => await this.dao.getCartsBy(filtro);
+
+    getCartsProducts = async (id) => await this.dao.getCartsProducts(id);
+
+    addProductToCart = async (id, product) => await this.dao.addProductToCart(id, product);
+
+    updateCart = async (cid, products) => await this.dao.updateCart(cid, products);
+
+    updateProductQ = async (id, product, quantity) => await this.dao.updateProductQ(id, product, quantity);
+
+    deleteAllProductsFromCart = async (cid) => await this.dao.deleteAllProductsFromCart(cid);
+
+    deleteProductFromCart = async (cid, pid) => await this.dao.deleteProductFromCart(cid, pid);
 }
 
-export const cartService = new CartService(new CartManager())
+export const cartService = new CartService(new CartManager());

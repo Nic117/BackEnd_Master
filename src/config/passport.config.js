@@ -21,9 +21,9 @@ export const initPassport = () => {
                 try {
                     const { first_name, last_name, age } = req.body;
 
-                    if (!first_name || !last_name || !age) return done(null, false, { message: 'Complete todos los campos' });
+                    if (!first_name || !last_name || !age) return done(null, false, { message: 'Todos los campos son requeridos' });
 
-                    if (await userManager.getUsersBy({ email: username })) return done(null, false, { message: 'El email indicado ya existe' });
+                    if (await userManager.getUsersBy({ email: username })) return done(null, false, { message: 'ya existe ese Email' });
 
                     const newCart = await cartManager.createCart();
                     const newUser = await userManager.createUser({ first_name, last_name, email: username, age, password: generaHash(password), cart: newCart._id });

@@ -5,45 +5,25 @@ class UserService {
         this.dao = dao;
     }
 
-    async createUser(user) {
-        return this.dao.createUser(user);
-    }
+    createUser = async (user) => await this.dao.createUser(user);
 
-    async getAllUser() {
-        return this.dao.getAllUser();
-    }
+    getAllUser = async () => await this.dao.getAllUser();
 
-    async getUsersBy(filtro = {}) {
-        return this.dao.getUsersBy(filtro);
-    }
+    getUsersBy = async (filter = {}) => await this.dao.getUsersBy(filter);
 
-    async getDocumentsByUserId(id) {
-        return this.dao.getDocumentsByUserId(id);
-    }
+    getDocumentsByUserId = async (id) => await this.dao.getDocumentsByUserId(id);
 
-    async updatePassword(id, hashedPassword) {
-        return this.dao.update(id, { password: hashedPassword });
-    }
+    updatePassword = async (id, hashedPassword) => this.dao.update(id, hashedPassword);
 
-    async updateRol(id, nuevoRol) {
-        return this.dao.updateRol(id, nuevoRol);
-    }
+    updateRol = async (id, newRole) => this.dao.updateRol(id, newRole);
 
-    async getUserId(id) {
-        return this.dao.getUsersById({ _id: id });
-    }
+    getUserId = async (id) => this.dao.getUsersById({ _id: id });
 
-    async deleteUserByEmail(userEmail) {
-        return this.dao.deleteUserByEmail(userEmail);
-    }
+    deleteUserByEmail = async (userEmail) => await this.dao.deleteUserByEmail(userEmail);
 
-    async updateUser(uid, update) {
-        return this.dao.updateUser(uid, update);
-    }
+    updateUser = async (uid, update) => await this.dao.updateUser(uid, update);
 
-    async deleteUsers(filter) {
-        return this.dao.deleteUsers(filter);
-    }
+    deleteUsers = async (filter) => await this.dao.deleteUsers(filter);
 }
 
 export const userService = new UserService(new UserManager());

@@ -5,33 +5,19 @@ class ProductService {
         this.dao = dao;
     }
 
-    async getProducts() {
-        return this.dao.getProducts();
-    }
+    getProducts = async () => await this.dao.getProducts();
 
-    async getProductsPaginate(filter, options) {
-        return this.dao.getProductsPaginate(filter, options);
-    }
+    getProductsPaginate = async (filter, options) => await this.dao.getProductsPaginate(filter, options);
 
-    async getSortProducts(sort) {
-        return this.dao.getSortProducts(sort);
-    }
+    getSortProducts = async (sort) => await this.dao.getSortProducts(sort);
 
-    async createProduct(product) {
-        return this.dao.createProduct(product);
-    }
+    createProduct = async (product) => await this.dao.createProduct(product);
 
-    async getProductsBy(filtro) {
-        return this.dao.getProductsBy(filtro);
-    }
+    getProductsBy = async (filtro) => await this.dao.getProductsBy(filtro);
 
-    async updateProduct(id, updateData) {
-        return this.dao.updateProduct(id, updateData);
-    }
+    updateProduct = async (id, updateData) => await this.dao.updateProduct(id, updateData);
 
-    async deleteProduct(id) {
-        return this.dao.deleteProduct(id);
-    }
+    deleteProduct = async (id) => await this.dao.deleteProduct(id);
 }
 
 export const productService = new ProductService(new ProductManager());

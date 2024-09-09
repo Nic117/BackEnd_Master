@@ -26,8 +26,8 @@ export class ProductController {
             };
             const { prevPage, nextPage, prevLink, nextLink } = buildLinks(products);
             if (page < 1 || page > products.totalPages) {
-                throw CustomError.createError("getProducts --> productController", "Página fuera de rango",
-                                              "La página solicitada está fuera de rango", TIPOS_ERROR.NOT_FOUND);
+                throw CustomError.createError("getProducts --> productController", "No Existe la Pagina",
+                                              "Final de la Pagina", TIPOS_ERROR.NOT_FOUND);
             }
             res.status(200).json({ status: "success", payload: products.docs,
                                    totalPages: products.totalPages, page: Number(page),
@@ -138,7 +138,7 @@ export class ProductController {
             res.status(200).json(products);
         } catch (error) {
             CustomError.createError("mock --> productController", null,
-                                    "Un error inesperado ocurrió al cargar la página", TIPOS_ERROR.INTERNAL_SERVER_ERROR);
+                                    "Error al cargar la pagina", TIPOS_ERROR.INTERNAL_SERVER_ERROR);
         }
     }
 }

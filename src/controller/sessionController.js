@@ -4,79 +4,69 @@ import { UsersDTO } from '../dto/UsersDTO.js';
 import "express-async-errors";
 
 export class SessionController {
-    static clearCookieAndRespond(res, message, status = 200) {
+
+    static logout = (req, res) => {
         res.clearCookie("codercookie", { httpOnly: true });
-        res.setHeader("Content-Type", "application/json");
-        return res.status(status).json({ payload: message });
-    }
+        res.status(200).json({ payload: "Cerraste la sesión con éxito" });
+    };
 
-    static logout(req, res) {
-        return this.clearCookieAndRespond(res, "Sesion Cerrada");
-    }
-
-    static handleError(req, res, error) {
+    static error = (req, res, error) => {
         const errorMessage = error?.message || 'Error desconocido';
-        res.setHeader('Content-Type', 'application/json');
-        return res.status(500).json({
+        res.status(500).json({
             error: "Error en el servidor",
             detalle: errorMessage
         });
-    }
+    };
 
-    static generateToken(user) {
+    static callbackGitHub = (req, res) => {
         const tokenData = {
-            first_name: user.first_name,
-            email: user.email,
-            rol: user.rol,
-            cart: user.cart
+            first_name: req.user.first_name,
+            email: req.user.email,
+            rol: req.user.rol,
+            cart: req.user.cart
         };
-        return jwt.sign(tokenData, SECRET, { expiresIn: "1h" });
-    }
-
-    static callbackGitHub(req, res) {
-        const token = this.generateToken(req.user);
+        const token = jwt.sign(tokenData, SECRET, { expiresIn: "1h" });
         res.cookie("codercookie", token, { httpOnly: true });
-        res.setHeader('Content-Type', 'application/json');
-        return res.status(200).json({ payload: "Login correcto", user: req.user });
-    }
+        res.status(200).json({ payload: "Login correcto", user: req.user });
+    };
 
-    static current(req, res) {
+    static current = (req, res) => {
         const userDTO = new UsersDTO(req.user);
-        res.setHeader("Content-Type", "application/json");
-        return res.status(200).json(userDTO);
-    }
+        res.status(200).json(userDTO);
+    };
 
-    static async register(req, res) {
+    static register = async (req, res) => {
         try {
             const { web } = req.body;
-
             if (web) {
                 return res.redirect("/login");
-            } else {
-                return this.clearCookieAndRespond(res, "Usuario creado exitosamente");
             }
+            res.status(200).json({ payload: "Usuario creado exitosamente", user: req.user });
         } catch (error) {
-            console.error('Error en el registro:', error);
-            return this.handleError(req, res, error);
+            return SessionController.handleServerError(res, error, 'Error en el registro');
         }
-    }
+    };
 
-    static async login(req, res) {
+    static login = async (req, res) => {
         try {
             const { web } = req.body;
-            const user = { ...req.user };
-            const token = this.generateToken(user);
-
+            const token = jwt.sign({ ...req.user }, SECRET, { expiresIn: "1h" });
             res.cookie("codercookie", token, { httpOnly: true });
 
             if (web) {
                 return res.redirect("/products");
-            } else {
-                res.setHeader('Content-Type', 'application/json');
-                return res.status(200).json({ payload: "Login correcto", user, token });
             }
+            res.status(200).json({ payload: "Login correcto", user: req.user, token });
         } catch (error) {
-            return this.handleError(req, res, error);
+            return SessionController.handleServerError(res, error, 'Error en el login');
         }
+    };
+
+    static handleServerError(res, error, customMessage) {
+        console.error(customMessage, error);
+        return res.status(500).json({
+            error: "Error en el servidor",
+            detalle: error.message || 'Error desconocido'
+        });
     }
 }

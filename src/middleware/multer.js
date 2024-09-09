@@ -4,40 +4,49 @@ import fs from "fs";
 import __dirname from "../utils/utils.js";
 
 const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
+  destination: (req, file, cb) => {
     if (!req.user) {
       return cb(new Error("El usuario no está autenticado"), false);
     }
 
-    const basePath = path.join(__dirname, "/public/assets/");
-    let uploadPath;
+    let uploadPath = path.join(__dirname, "/public/assets/");
+    const userId = req.user._id.toString();
 
     if (file.fieldname === "file") {
-      const subfolder = file.mimetype.startsWith("image") ? "img/profiles" : "documents";
-      uploadPath = path.join(basePath, subfolder, req.user._id.toString());
-    } else if (file.fieldname === "thumbnails") {
-      uploadPath = path.join(basePath, "img/products");
+      if (file.mimetype.startsWith("image")) {
+        uploadPath = path.join(uploadPath, "img/profiles", userId);
+      } else {
+        uploadPath = path.join(uploadPath, "documents", userId);
+      }
+    }
+
+    if (file.fieldname === "thumbnails") {
+      uploadPath = path.join(uploadPath, "img/products");
     }
 
     fs.mkdirSync(uploadPath, { recursive: true });
     cb(null, uploadPath);
   },
-  filename: function (req, file, cb) {
+  filename: (req, file, cb) => {
     const docType = req.query.document_type;
     const fileExtension = path.extname(file.originalname);
-    
+    let fileName = file.originalname.replace(/\s/g, "");
+
     if (!docType) {
       return cb(new Error("document_type no proporcionado"));
     }
 
+  
     const fileNameMap = {
-      "ID": `Comprobante-Identificacion${fileExtension}`,
-      "adress": `Comprobante-Domicilio${fileExtension}`,
-      "statement": `Comprobante-Cuenta${fileExtension}`,
-      "avatar": "ProfilePic",
+      ID: `Comprobante-Identificacion${fileExtension}`,
+      adress: `Comprobante-Domicilio${fileExtension}`,
+      statement: `Comprobante-Cuenta${fileExtension}`,
+      avatar: "ProfilePic",
     };
 
-    const fileName = fileNameMap[docType] || file.originalname.replace(/\s/g, "");
+  
+    fileName = fileNameMap[docType] || fileName;
+
     cb(null, fileName);
   },
 });
@@ -45,3 +54,4 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 export default upload;
+

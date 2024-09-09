@@ -1,13 +1,13 @@
 paths:
   /api/product/:
     get:
-      summary: Obtener todos los productos
-      description: Se obtienen todos los productos disponibles.
+      summary: Listar todos los productos
+      description: Recupera todos los productos disponibles en el inventario.
       tags:
         - Products
       responses:
         "200":
-          description: Los productos fueron obtenidos satisfactoriamente de la base de datos.
+          description: Lista de productos recuperada exitosamente de la base de datos.
           content:
             application/json:
               schema:
@@ -15,13 +15,13 @@ paths:
                 items:
                   $ref: "#/components/schemas/ProductDetails"
         "400":
-          description: El id o alguna propiedad especificada no son válidos
+          description: Error en los parámetros proporcionados
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/response400"
         "404":
-          description: El producto no fue encontrado
+          description: No se encontraron productos
           content:
             application/json:
               schema:
@@ -33,14 +33,14 @@ paths:
               schema:
                 $ref: "#/components/schemas/response500"
     post:
-      summary: Agregar un nuevo producto
-      description: Se agrega un nuevo producto a la base de datos.
+      summary: Crear un nuevo producto
+      description: Añade un producto nuevo al inventario.
       security:
         - cookieAuth: []
       tags:
         - Products
       requestBody:
-        description: Object del producto a ser agregado a la base de datos.
+        description: Datos del producto que se desea agregar.
         required: true
         content:
           application/json:
@@ -57,30 +57,30 @@ paths:
               properties:
                 title:
                   type: string
-                  description: El título del producto.
+                  description: Nombre del producto
                 description:
                   type: string
-                  description: La descripción del producto.
+                  description: Detalles del producto
                 price:
                   type: number
-                  description: El precio del producto.
+                  description: Precio del producto
                 thumbnails:
                   type: array
                   items:
                     type: string
-                    description: La URL del producto.
+                    description: URL de las imágenes del producto
                 code:
                   type: string
-                  description: El código del producto.
+                  description: Código de identificación del producto
                 stock:
                   type: number
-                  description: El stock del producto.
+                  description: Cantidad disponible en inventario
                 category:
                   type: string
-                  description: La categoría del producto.
+                  description: Categoría del producto
       responses:
         "200":
-          description: Producto agregado exitosamente.
+          description: Producto añadido con éxito
           content:
             application/json:
               schema:
@@ -88,67 +88,68 @@ paths:
                 properties:
                   status:
                     type: string
-                    example: "Success: Producto agregado"
+                    example: "Producto agregado correctamente"
         "400":
-          description: Ocurrió un error al agregar el producto.
+          description: Error al agregar el producto
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/response400"
         "401":
-          description: No se pudo autenticar el usuario
+          description: Autenticación fallida
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/response401"
         "500":
-          description: Error interno del servidor
+          description: Error interno en el servidor
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/response500"
+
   /api/product/{pid}:
     get:
-      summary: Obtener un producto por ID
-      description: Este endpoint permite obtener un producto específico a partir de su ID.
+      summary: Consultar un producto por su ID
+      description: Obtén los detalles de un producto en particular utilizando su ID único.
       tags:
         - Products
       parameters:
         - name: pid
           in: path
           required: true
-          description: ID del producto que se solicita.
+          description: El ID del producto que se solicita.
           schema:
             type: string
             example: "6635a4359a91d1aaa6e1fb62"
       responses:
         "200":
-          description: Producto encontrado
+          description: Producto recuperado con éxito
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Product"
         "400":
-          description: El id o alguna propiedad especificada no son válidos
+          description: ID no válido o incorrecto
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/response400"
         "404":
-          description: El producto no fue encontrado
+          description: Producto no encontrado
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/response404"
         "500":
-          description: Error interno del servidor
+          description: Error en el servidor al recuperar el producto
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/response500"
     put:
-      summary: Actualizar un producto a partir de su id
-      description: Este endpoint permite actualizar un producto existente en la base de datos.
+      summary: Actualizar un producto existente
+      description: Permite modificar los datos de un producto en la base de datos mediante su ID.
       security:
         - cookieAuth: []
       tags:
@@ -157,7 +158,7 @@ paths:
         - name: pid
           in: path
           required: true
-          description: ID del producto que se desea actualizar.
+          description: ID del producto a modificar.
           schema:
             type: string
             example: "6635a4359a91d1aaa6e1fb62"
@@ -169,44 +170,45 @@ paths:
               $ref: "#/components/schemas/updateProduct"
       responses:
         "200":
-          description: Producto actualizado con éxito
+          description: Producto actualizado correctamente
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ProductDetails"
         "400":
-          description: El id o alguna propiedad especificada no son válidos
+          description: Error en los parámetros proporcionados
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/response400"
         "401":
-          description: No se pudo autenticar el usuario
+          description: No se pudo autenticar al usuario
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/response401"
         "403":
-          description: El usuario no tiene los permisos necesarios
+          description: Acceso denegado para modificar el producto
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/response403"
         "404":
-          description: El producto no fue encontrado
+          description: Producto no encontrado
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/response404"
         "500":
-          description: Error interno del servidor
+          description: Error interno en el servidor
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/response500"
+
     delete:
-      summary: Elimina un producto
-      description: Esta ruta permite eliminar un producto por su ID.
+      summary: Eliminar un producto por ID
+      description: Elimina un producto del inventario usando su ID único.
       security:
         - cookieAuth: []
       tags:
@@ -221,19 +223,19 @@ paths:
             example: "6635a4359a91d1aaa6e1fb62"
       responses:
         "200":
-          description: El producto fue eliminado con éxito
+          description: Producto eliminado exitosamente
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Product"
         "401":
-          description: No se pudo autenticar el usuario
+          description: No se pudo autenticar al usuario
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/response401"
         "403":
-          description: El usuario no tiene los permisos necesarios
+          description: El usuario no tiene permisos para realizar esta acción
           content:
             application/json:
               schema:
@@ -245,7 +247,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/response404"
         "500":
-          description: Error interno del servidor
+          description: Ocurrió un error en el servidor
           content:
             application/json:
               schema:

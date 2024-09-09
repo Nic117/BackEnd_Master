@@ -2,13 +2,13 @@ import mongoose from "mongoose";
 
 const ticketsCollection = "tickets";
 
-// Definición del esquema del ticket
+
 const ticketSchema = new mongoose.Schema(
     {
         code: {
             type: String,
             required: true,
-            unique: true, // Asegura que el código del ticket sea único
+            unique: true, 
         },
         purchase_datetime: {
             type: Date,
@@ -26,7 +26,7 @@ const ticketSchema = new mongoose.Schema(
             {
                 _id: {
                     type: mongoose.Schema.Types.ObjectId,
-                    ref: "products", // Referencia al modelo de productos
+                    ref: "products", 
                     required: true,
                 },
                 quantity: {
@@ -49,9 +49,9 @@ const ticketSchema = new mongoose.Schema(
         ],
     },
     {
-        timestamps: true, // Agrega createdAt y updatedAt automáticamente
+        timestamps: true, 
     }
 );
 
-// Modelo de Mongoose para tickets
+
 export const ticketModelo = mongoose.model(ticketsCollection, ticketSchema);

@@ -3,12 +3,16 @@ import { Command, Option } from "commander";
 import path from "path";
 import { fileURLToPath } from 'url';
 
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 
-const devPath = path.join(__dirname, '../.env.dev');
-const prodPath = path.join(__dirname, '../.env.prod');
+const envPaths = {
+    dev: path.join(__dirname, '../.env.dev'),
+    prod: path.join(__dirname, '../.env.prod')
+};
+
 
 const programa = new Command();
 programa
@@ -19,8 +23,9 @@ programa
 programa.parse();
 const { mode } = programa.opts();
 
+
 dotenv.config({
-    path: mode === "prod" ? prodPath : devPath,
+    path: envPaths[mode] || envPaths.dev, 
     override: true
 });
 
@@ -34,5 +39,5 @@ export const config = {
     SECRET: process.env.SECRET,
     CLIENT_ID_GITHUB: process.env.CLIENT_ID_GITHUB,
     CLIENT_SECRET_GITHUB: process.env.CLIENT_SECRET_GITHUB,
-    MODE: process.env.MODE
+    MODE: mode 
 };

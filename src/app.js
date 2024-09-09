@@ -19,7 +19,7 @@ import { messageModelo } from "./dao/models/messageModelo.js";
 import { router as vistasRouter } from './routes/vistas.router.js';
 import { router as productRouter } from './routes/productRouter.js';
 import { router as cartRouter } from './routes/cartRouter.js';
-import { router as sessionsRouter } from './routes/sessionRouter.js';
+import sessionsRouter from './routes/sessionRouter.js';
 import { router as userRouter } from './routes/userRouter.js';
 import { router as loggerRouter } from './routes/loggerRouter.js';
 import { userService } from './services/userService.js';
@@ -27,7 +27,7 @@ import { userService } from './services/userService.js';
 const PORT = config.PORT;
 const app = express();
 
-// Configuración de handlebars
+// Configuración de Handlebars
 app.engine('handlebars', engine());
 app.set('view engine', 'handlebars');
 app.set('views', path.join(__dirname, '/views'));
@@ -77,6 +77,7 @@ process.on("uncaughtException", (error) => {
 
 export const io = new Server(server);
 
+// Gestión de conexiones Socket.IO
 io.on("connection", (socket) => {
     logger.info(`Cliente conectado: ${socket.id}`);
 
@@ -89,6 +90,7 @@ io.on("connection", (socket) => {
         }
     };
 
+    // Gestión de eventos socket
     socket.on("id", async (userName) => {
         usuarios[socket.id] = userName;
         const messages = await messageModelo.find();

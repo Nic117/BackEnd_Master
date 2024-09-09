@@ -1,36 +1,40 @@
 import mongoose from "mongoose";
 
 const usersCollection = "users";
-
-// Definición del esquema de usuario
-const userSchema = new mongoose.Schema(
-    {
-        first_name: { 
-            type: String, 
-            required: true 
-        },
-        last_name: String,
-        email: { 
-            type: String, 
-            required: true, 
-            unique: true 
-        },
-        age: Number,
-        password: String,
-        rol: {
-            type: String,
-            default: "usuario"
-        },
-        cart: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "cart" // Referencia al modelo de carrito
-        }
+const userSchema = new mongoose.Schema({
+    first_name: { type: String, required: true },
+    last_name: { type: String },
+    email: { type: String, required: true, unique: true },
+    age: { type: Number },
+    password: { type: String },
+    rol: {
+        type: String,
+        enum: ["usuario", "admin", "premium"],
+        default: "usuario"
     },
-    {
-        timestamps: true, // Agrega createdAt y updatedAt automáticamente
-        strict: false // Permite campos no definidos en el esquema
+    cart: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "cart"
+    },
+    avatar: {
+        name: { type: String },
+        reference: { type: String }
+    },
+    documents: [{
+        name: { type: String },
+        reference: { type: String },
+        docType: {
+            type: String,
+            enum: ["ID", "adress", "statement"]
+        }
+    }],
+    last_connection: {
+        type: Date,
+        default: Date.now
     }
-);
+}, {
+    timestamps: true,
+    strict: false
+});
 
-// Modelo de Mongoose para usuarios
 export const userModel = mongoose.model(usersCollection, userSchema);

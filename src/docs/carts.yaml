@@ -1,12 +1,12 @@
 paths:
   /api/carts/:
     get:
-      summary: Devuelve una lista de carritos
+      summary: Recuperar una lista de carritos de compras
       tags:
-        - Carts
+        - Carritos
       responses:
         "200":
-          description: Carritos obtenidos con éxito
+          description: Lista de carritos obtenida exitosamente
           content:
             application/json:
               schema:
@@ -14,14 +14,14 @@ paths:
                 items:
                   $ref: "#/components/schemas/Cart"
         "500":
-          description: Error interno del servidor
+          description: Error del servidor al intentar obtener los carritos
     post:
-      summary: Creación de un carrito
+      summary: Crear un nuevo carrito de compras
       tags:
-        - Carts
+        - Carritos
       responses:
         "200":
-          description: El carrito fue creado exitosamente
+          description: Carrito creado correctamente
           content:
             application/json:
               schema:
@@ -29,24 +29,24 @@ paths:
                 items:
                   $ref: "#/components/schemas/Cart"
         "500":
-          description: Error interno del servidor
+          description: Fallo del servidor durante la creación del carrito
 
   /api/carts/{cid}:
     get:
-      summary: Obtener un carrito por ID
+      summary: Obtener un carrito específico por su ID
       tags:
-        - Carts
+        - Carritos
       parameters:
         - in: path
           required: true
-          description: ID del carrito
+          description: Identificador único del carrito
           name: cid
           schema:
             type: string
             example: 66352f1c2ffc6c230910172b
       responses:
         "200":
-          description: El carrito fue obtenido exitosamente
+          description: Carrito recuperado exitosamente
           content:
             application/json:
               schema:
@@ -54,7 +54,7 @@ paths:
                 items:
                   $ref: "#/components/schemas/Cart"
         "400":
-          description: El id o alguna propiedad especificada no son válidos
+          description: El ID proporcionado no es válido
           content:
             application/json:
               schema:
@@ -66,28 +66,28 @@ paths:
               schema:
                 $ref: "#/components/schemas/response404"
         "500":
-          description: Error interno del servidor
+          description: Error del servidor al intentar recuperar el carrito
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/response500"
 
     put:
-      summary: Actualizar los productos dentro de un carrito
+      summary: Modificar los productos de un carrito existente
       tags:
-        - Carts
+        - Carritos
       security:
         - cookieAuth: []
       parameters:
         - in: path
           required: true
-          description: ID del carrito
+          description: ID del carrito a modificar
           name: cid
           schema:
             type: string
             example: 66352f1c2ffc6c230910172b
       requestBody:
-        description: Nuevos productos del carrito
+        description: Lista de productos a actualizar en el carrito
         required: true
         content:
           application/json:
@@ -97,7 +97,7 @@ paths:
                 $ref: "#/components/schemas/Product"
       responses:
         "200":
-          description: Carrito actualizado con éxito
+          description: Carrito actualizado correctamente
           content:
             application/json:
               schema:
@@ -105,7 +105,7 @@ paths:
                 items:
                   $ref: "#/components/schemas/Cart"
         "400":
-          description: El id o alguna propiedad especificada no son válidos
+          description: El ID o los datos proporcionados no son válidos
           content:
             application/json:
               schema:
@@ -117,28 +117,29 @@ paths:
               schema:
                 $ref: "#/components/schemas/response404"
         "500":
-          description: Error interno del servidor
+          description: Error del servidor al intentar actualizar el carrito
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/response500"
+
     delete:
-      summary: Eliminar todos los productos de un carrito por ID
+      summary: Eliminar todos los productos de un carrito específico
       tags:
-        - Carts
+        - Carritos
       security:
         - cookieAuth: []
       parameters:
         - in: path
           required: true
-          description: ID del carrito
+          description: ID del carrito a limpiar
           name: cid
           schema:
             type: string
             example: 66352f1c2ffc6c230910172b
       responses:
         "200":
-          description: Carrito limpiado con éxito
+          description: Productos eliminados del carrito exitosamente
           content:
             application/json:
               schema:
@@ -146,7 +147,7 @@ paths:
                 items:
                   $ref: "#/components/schemas/Cart"
         "400":
-          description: El id o alguna propiedad especificada no son válidos
+          description: ID no válido
           content:
             application/json:
               schema:
@@ -158,7 +159,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/response404"
         "500":
-          description: Error interno del servidor
+          description: Error del servidor al intentar limpiar el carrito
           content:
             application/json:
               schema:
@@ -166,11 +167,11 @@ paths:
 
   /api/carts/{cid}/purchase:
     get:
-      summary: Obtener la orden de compra
+      summary: Obtener detalles de la compra del carrito
       security:
         - cookieAuth: []
       tags:
-        - Carts
+        - Carritos
       parameters:
         - in: path
           required: true
@@ -181,7 +182,7 @@ paths:
             example: 66352f1c2ffc6c230910172b
       responses:
         "200":
-          description: Orden de compra obtenida con éxito
+          description: Compra obtenida correctamente
           content:
             application/json:
               schema:
@@ -196,7 +197,7 @@ paths:
                       ticket:
                         $ref: "#/components/schemas/Cart"
         "400":
-          description: El id o alguna propiedad especificada no son válidos
+          description: ID inválido o datos incorrectos
           content:
             application/json:
               schema:
@@ -208,17 +209,17 @@ paths:
               schema:
                 $ref: "#/components/schemas/response404"
         "500":
-          description: Error interno del servidor
+          description: Error del servidor al obtener la compra
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/response500"
     post:
-      summary: Generar la orden de compra
+      summary: Finalizar la compra del carrito
       security:
         - cookieAuth: []
       tags:
-        - Carts
+        - Carritos
       parameters:
         - in: path
           required: true
@@ -228,7 +229,7 @@ paths:
             type: string
             example: 66352f1c2ffc6c230910172b
       requestBody:
-        description: Detalles de la compra
+        description: Detalles de los productos comprados
         required: true
         content:
           application/json:
@@ -241,7 +242,7 @@ paths:
                     $ref: "#/components/schemas/Product"
       responses:
         "200":
-          description: Orden de compra generada con éxito
+          description: Compra completada exitosamente
           content:
             application/json:
               schema:
@@ -256,7 +257,7 @@ paths:
                       ticket:
                         $ref: "#/components/schemas/Cart"
         "400":
-          description: El id o alguna propiedad especificada no son válidos
+          description: ID o datos proporcionados inválidos
           content:
             application/json:
               schema:
@@ -268,7 +269,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/response404"
         "500":
-          description: Error interno del servidor
+          description: Error del servidor al finalizar la compra
           content:
             application/json:
               schema:
@@ -276,11 +277,11 @@ paths:
 
   /api/carts/{cid}/products/{pid}:
     post:
-      summary: Agregar un producto al carrito
+      summary: Añadir un producto al carrito existente
       security:
         - cookieAuth: []
       tags:
-        - Carts
+        - Carritos
       parameters:
         - name: cid
           in: path
@@ -291,11 +292,11 @@ paths:
         - name: pid
           in: path
           required: true
-          description: ID del producto
+          description: ID del producto a añadir
           schema:
             type: string
       requestBody:
-        description: Cantidad de producto a agregar
+        description: Cantidad del producto a añadir
         required: true
         content:
           application/json:
@@ -306,19 +307,19 @@ paths:
                   type: number
       responses:
         "200":
-          description: Producto agregado con éxito
+          description: Producto añadido correctamente al carrito
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Cart"
         "400":
-          description: El id o alguna propiedad especificada no son válidos
+          description: ID o datos proporcionados no son válidos
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/response400"
         "401":
-          description: No se pudo autenticar el usuario
+          description: Usuario no autenticado
           content:
             application/json:
               schema:
@@ -330,7 +331,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/response404"
         "500":
-          description: Error interno del servidor
+          description: Error del servidor al añadir el producto
           content:
             application/json:
               schema:
@@ -341,7 +342,7 @@ paths:
       security:
         - cookieAuth: []
       tags:
-        - Carts
+        - Carritos
       parameters:
         - name: cid
           in: path
@@ -352,7 +353,7 @@ paths:
         - name: pid
           in: path
           required: true
-          description: ID del producto
+          description: ID del producto a modificar
           schema:
             type: string
       requestBody:
@@ -367,13 +368,13 @@ paths:
                   type: number
       responses:
         "200":
-          description: Cantidad modificada con éxito
+          description: Cantidad modificada correctamente
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Cart"
         "400":
-          description: El id o alguna propiedad especificada no son válidos
+          description: ID o cantidad proporcionada inválida
           content:
             application/json:
               schema:
@@ -385,7 +386,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/response404"
         "500":
-          description: Error interno del servidor
+          description: Error del servidor al modificar la cantidad del producto
           content:
             application/json:
               schema:
@@ -396,7 +397,7 @@ paths:
       security:
         - cookieAuth: []
       tags:
-        - Carts
+        - Carritos
       parameters:
         - name: cid
           in: path
@@ -407,24 +408,24 @@ paths:
         - name: pid
           in: path
           required: true
-          description: ID del producto
+          description: ID del producto a eliminar
           schema:
             type: string
       responses:
         "200":
-          description: Producto eliminado con éxito
+          description: Producto eliminado del carrito correctamente
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Cart"
         "400":
-          description: El id o alguna propiedad especificada no son válidos
+          description: ID no válido
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/response400"
         "500":
-          description: Error interno del servidor
+          description: Error del servidor al eliminar el producto
           content:
             application/json:
               schema:

@@ -1,10 +1,14 @@
 export const loggerController = (req, res) => {
-    req.logger.info("Testeando info");
-    req.logger.http("Testeando http");
-    req.logger.debug("Testeando debug");
-    req.logger.fatal("Testeando fatal");
-    req.logger.error("Testeando error");
-    req.logger.warning("Testeando warning");
+    const logMessages = [
+        { level: 'info', message: "Testeando info" },
+        { level: 'http', message: "Testeando http" },
+        { level: 'debug', message: "Testeando debug" },
+        { level: 'fatal', message: "Testeando fatal" },
+        { level: 'error', message: "Testeando error" },
+        { level: 'warning', message: "Testeando warning" }
+    ];
 
-    res.send({ status: "success", message: "Probando logger" })
-}
+    logMessages.forEach(log => req.logger[log.level](log.message));
+
+    res.json({ status: "success", message: "Logger test executed successfully" });
+};

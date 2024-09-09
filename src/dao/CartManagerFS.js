@@ -36,16 +36,15 @@ export default class CartManager {
     async getCarts() {
         if (fs.existsSync(this.path)) {
             const data = await fs.promises.readFile(this.path, { encoding: "utf-8" });
-            // console.log("Datos leídos del archivo JSON:", data);
             const carts = JSON.parse(data);
             if (Array.isArray(carts)) {
                 return carts;
             } else {
-                console.log("El contenido del archivo JSON no es un array válido.");
+                console.log("El archivo JSON no es válido.");
                 return [];
             }
         } else {
-            console.log(`El archivo JSON no existe en la ruta: ${this.path}. Creando un nuevo archivo...`);
+            console.log(`El archivo JSON no existe en la ruta: ${this.path}. Creando un nuevo archivo..`);
             await this.saveCart([]);
             return [];
         }

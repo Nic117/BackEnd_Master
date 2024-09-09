@@ -1,32 +1,58 @@
 import { userModel } from "./models/userModel.js";
 
 export default class UserManager {
-
     async createUser(user) {
-        try {
-            let newUser = await userModel.create(user);
-            return newUser.toJSON();
-        } catch (error) {
-            console.error(`Error al crear usuario: ${error}`);
-            throw new Error("Error al crear usuario");
-        }
-    };
+        const newUser = await userModel.create(user);
+        return newUser.toJSON();
+    }
+
+    async getAllUsers() {
+        return await userModel.find().lean();
+    }
 
     async getUsersBy(filtro = {}) {
-        try {
-            return await userModel.findOne(filtro).lean();
-        } catch (error) {
-            console.error(`Error al obtener usuario: ${error}`);
-            throw new Error("Error al obtener usuario");
-        }
-    };
+        return await userModel.findOne(filtro).lean();
+    }
+
+    async getUserById(id) {
+        return await userModel.findById(id).lean();
+    }
+
+    async getDocumentsByUserId(id) {
+        const user = await this.getUserById(id);
+        if (!user) throw new Error("Usuario no encontrado");
+        return user.documents || [];
+    }
 
     async getByPopulate(filtro = {}) {
-        try {
-            return await userModel.findOne(filtro).populate("cart").lean();
-        } catch (error) {
-            console.error(`Error al obtener usuario con populate: ${error}`);
-            throw new Error("Error al obtener usuario con populate");
-        }
+        return await userModel.findOne(filtro).populate("cart").lean();
+    }
+
+    async updatePassword(id, hashedPassword) {
+        return await userModel.findByIdAndUpdate(
+            id, 
+            { password: hashedPassword }, 
+            { runValidators: true, returnDocument: "after" }
+        );
+    }
+
+    async updateRole(id, newRole) {
+        return await userModel.findByIdAndUpdate(
+            id, 
+            { rol: newRole }, 
+            { runValidators: true, returnDocument: "after" }
+        );
+    }
+
+    async updateUser(uid, updateData) {
+        const user = await userModel.findByIdAndUpdate(uid, updateData, { new: true });
+        if (!user) throw new Error("Usuario no encontrado.");
+        return user;
+    }
+
+    async deleteUserByEmail(email) {
+        const result = await userModel.deleteOne({ email });
+        if (!result.deletedCount) throw new Error("Usuario no encontrado.");
+        return result;
     }
 }

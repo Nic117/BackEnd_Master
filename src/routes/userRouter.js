@@ -5,16 +5,12 @@ import upload from '../middleware/multer.js';
 
 export const router = Router();
 
-// Rutas de usuario
+const authUserPremium = [verifyJWT, auth(["usuario", "premium"])];
+const authAdminUserPremium = [verifyJWT, auth(["admin", "usuario", "premium"])];
+
 router.get('/', UserController.getUsers);
-
-router.get('/premium/:uid', verifyJWT, auth(["usuario", "premium"]), UserController.userPremium);
-
-router.post("/resetPassword", verifyJWT, auth(["usuario", "premium"]), UserController.resetPassword);
-
-router.put("/createnewpassword/:token", verifyJWT, auth(["usuario", "premium"]), UserController.createNewPassword);
-
-router.post("/:uid/documents", verifyJWT, auth(["admin", "usuario", "premium"]), upload.array("file"), UserController.uploadUserDocuments);
-
-router.delete("/", verifyJWT, auth(["admin"]), UserController.deleteUsers);
-
+router.get('/premium/:uid', ...authUserPremium, UserController.userPremium);
+router.post("/resetPassword", ...authUserPremium, UserController.resetPassword);
+router.put("/createnewpassword/:token", ...authUserPremium, UserController.createNewPassword);
+router.post("/:uid/documents", ...authAdminUserPremium, upload.array("file"), UserController.uploadUserDocuments);
+router.delete("/", authAdminUserPremium, UserController.deleteUsers);
