@@ -5,15 +5,15 @@ import ProductManager from "./ProductDAO.js";
 import { cartModelo } from './models/cartModelo.js';
 
 export default class CartManager {
-
     async getCarts() {
         try {
             return await cartModelo.find().populate("products.product").lean();
         } catch (error) {
+            logger.error("Error al recuperar los carritos: " + error.message);
             throw CustomError.createError(
-                "getCarts --> cartDAO", 
-                "Error al recuperar los carritos", 
-                error.message, 
+                "getCarts --> cartDAO",
+                "Error al recuperar los carritos",
+                error.message,
                 TIPOS_ERROR.INTERNAL_SERVER_ERROR
             );
         }
@@ -24,10 +24,11 @@ export default class CartManager {
             const cart = await cartModelo.create({ products: [] });
             return cart.toJSON();
         } catch (error) {
+            logger.error("Error al crear el carrito: " + error.message);
             throw CustomError.createError(
-                "createCart --> cartDAO", 
-                "Error al crear el carrito", 
-                error.message, 
+                "createCart --> cartDAO",
+                "Error al crear el carrito",
+                error.message,
                 TIPOS_ERROR.INTERNAL_SERVER_ERROR
             );
         }
@@ -37,10 +38,11 @@ export default class CartManager {
         try {
             return await cartModelo.findOne(filtro).populate("products.product").lean();
         } catch (error) {
+            logger.error("Error al recuperar el carrito: " + error.message);
             throw CustomError.createError(
-                "getCartsBy --> cartDAO", 
-                "Error al recuperar el carrito", 
-                error.message, 
+                "getCartsBy --> cartDAO",
+                "Error al recuperar el carrito",
+                error.message,
                 TIPOS_ERROR.INTERNAL_SERVER_ERROR
             );
         }
@@ -48,22 +50,22 @@ export default class CartManager {
 
     async getCartsProducts(id) {
         try {
-            const carts = await this.getCarts();
-            const cart = carts.find(c => c.id === id);
+            const cart = await this.getCartsBy({ _id: id });
             if (!cart) {
                 throw CustomError.createError(
-                    "getCartsProducts --> cartDAO", 
-                    "Carrito no encontrado", 
-                    `No se encontró un carrito con el ID: ${id}`, 
+                    "getCartsProducts --> cartDAO",
+                    "Carrito no encontrado",
+                    `No se encontró un carrito con el ID: ${id}`,
                     TIPOS_ERROR.NOT_FOUND
                 );
             }
             return cart.products;
         } catch (error) {
+            logger.error("Error al recuperar los productos del carrito: " + error.message);
             throw CustomError.createError(
-                "getCartsProducts --> cartDAO", 
-                "Error al recuperar los productos del carrito", 
-                error.message, 
+                "getCartsProducts --> cartDAO",
+                "Error al recuperar los productos del carrito",
+                error.message,
                 TIPOS_ERROR.INTERNAL_SERVER_ERROR
             );
         }
@@ -74,14 +76,14 @@ export default class CartManager {
             const cart = await cartModelo.findById(cid);
             if (!cart) {
                 throw CustomError.createError(
-                    "addProductToCart --> cartDAO", 
-                    "Carrito no encontrado", 
-                    `No se encontró un carrito con el ID: ${cid}`, 
+                    "addProductToCart --> cartDAO",
+                    "Carrito no encontrado",
+                    `No se encontró un carrito con el ID: ${cid}`,
                     TIPOS_ERROR.NOT_FOUND
                 );
             }
 
-            const existingProductIndex = cart.products.findIndex(product => product.product == pid);
+            const existingProductIndex = cart.products.findIndex(product => product.product.toString() === pid);
             if (existingProductIndex !== -1) {
                 cart.products[existingProductIndex].quantity++;
             } else {
@@ -89,9 +91,9 @@ export default class CartManager {
                 const product = await productManager.getProductsBy({ _id: pid });
                 if (!product) {
                     throw CustomError.createError(
-                        "addProductToCart --> cartDAO", 
-                        "Producto no encontrado", 
-                        `No se encontró un producto con el ID: ${pid}`, 
+                        "addProductToCart --> cartDAO",
+                        "Producto no encontrado",
+                        `No se encontró un producto con el ID: ${pid}`,
                         TIPOS_ERROR.NOT_FOUND
                     );
                 }
@@ -103,10 +105,11 @@ export default class CartManager {
             logger.info(`Carrito guardado correctamente: ${cart}`);
             return cart;
         } catch (error) {
+            logger.error("Error al agregar el producto al carrito: " + error.message);
             throw CustomError.createError(
-                "addProductToCart --> cartDAO", 
-                "Error al agregar el producto al carrito", 
-                error.message, 
+                "addProductToCart --> cartDAO",
+                "Error al agregar el producto al carrito",
+                error.message,
                 TIPOS_ERROR.INTERNAL_SERVER_ERROR
             );
         }
@@ -115,22 +118,23 @@ export default class CartManager {
     async updateCart(cid, products) {
         try {
             const cart = await cartModelo.findByIdAndUpdate(
-                cid, { $set: { products: products } }, { returnDocument: "after" }
+                cid, { $set: { products: products } }, { new: true }
             );
             if (!cart) {
                 throw CustomError.createError(
-                    "updateCart --> cartDAO", 
-                    "Carrito no encontrado", 
-                    `No se encontró un carrito con el ID: ${cid}`, 
+                    "updateCart --> cartDAO",
+                    "Carrito no encontrado",
+                    `No se encontró un carrito con el ID: ${cid}`,
                     TIPOS_ERROR.NOT_FOUND
                 );
             }
             return cart;
         } catch (error) {
+            logger.error("Error al actualizar el carrito: " + error.message);
             throw CustomError.createError(
-                "updateCart --> cartDAO", 
-                "Error al actualizar el carrito", 
-                error.message, 
+                "updateCart --> cartDAO",
+                "Error al actualizar el carrito",
+                error.message,
                 TIPOS_ERROR.INTERNAL_SERVER_ERROR
             );
         }
@@ -146,18 +150,19 @@ export default class CartManager {
 
             if (!cart) {
                 throw CustomError.createError(
-                    "updateProductQ --> cartDAO", 
-                    "Carrito o producto no encontrado", 
-                    `No se encontró un carrito con el ID: ${cid} o producto con el ID: ${pid}`, 
+                    "updateProductQ --> cartDAO",
+                    "Carrito o producto no encontrado",
+                    `No se encontró un carrito con el ID: ${cid} o producto con el ID: ${pid}`,
                     TIPOS_ERROR.NOT_FOUND
                 );
             }
             return cart;
         } catch (error) {
+            logger.error("Error al actualizar la cantidad del producto: " + error.message);
             throw CustomError.createError(
-                "updateProductQ --> cartDAO", 
-                "Error al actualizar la cantidad del producto", 
-                error.message, 
+                "updateProductQ --> cartDAO",
+                "Error al actualizar la cantidad del producto",
+                error.message,
                 TIPOS_ERROR.INTERNAL_SERVER_ERROR
             );
         }
@@ -166,24 +171,24 @@ export default class CartManager {
     async deleteAllProductsFromCart(cid) {
         try {
             const cart = await cartModelo.findByIdAndUpdate(
-                cid, { $set: { products: [] } }, { returnDocument: "after" }
+                cid, { $set: { products: [] } }, { new: true }
             );
             if (!cart) {
                 throw CustomError.createError(
-                    "deleteAllProductsFromCart --> cartDAO", 
-                    "Carrito no encontrado", 
-                    `No se encontró un carrito con el ID: ${cid}`, 
+                    "deleteAllProductsFromCart --> cartDAO",
+                    "Carrito no encontrado",
+                    `No se encontró un carrito con el ID: ${cid}`,
                     TIPOS_ERROR.NOT_FOUND
                 );
             }
-
             logger.info(`Productos eliminados correctamente del carrito: ${cart}`);
             return cart;
         } catch (error) {
+            logger.error("Error al eliminar todos los productos del carrito: " + error.message);
             throw CustomError.createError(
-                "deleteAllProductsFromCart --> cartDAO", 
-                "Error al eliminar todos los productos del carrito", 
-                error.message, 
+                "deleteAllProductsFromCart --> cartDAO",
+                "Error al eliminar todos los productos del carrito",
+                error.message,
                 TIPOS_ERROR.INTERNAL_SERVER_ERROR
             );
         }
@@ -194,19 +199,19 @@ export default class CartManager {
             const cart = await cartModelo.findById(cid);
             if (!cart) {
                 throw CustomError.createError(
-                    "deleteProductFromCart --> cartDAO", 
-                    "Carrito no encontrado", 
-                    `No se encontró un carrito con el ID: ${cid}`, 
+                    "deleteProductFromCart --> cartDAO",
+                    "Carrito no encontrado",
+                    `No se encontró un carrito con el ID: ${cid}`,
                     TIPOS_ERROR.NOT_FOUND
                 );
             }
 
-            const productIndex = cart.products.findIndex(product => product.product == pid);
+            const productIndex = cart.products.findIndex(product => product.product.toString() === pid);
             if (productIndex === -1) {
                 throw CustomError.createError(
-                    "deleteProductFromCart --> cartDAO", 
-                    "Producto no encontrado", 
-                    `No se encontró un producto con el ID: ${pid} en el carrito`, 
+                    "deleteProductFromCart --> cartDAO",
+                    "Producto no encontrado",
+                    `No se encontró un producto con el ID: ${pid} en el carrito`,
                     TIPOS_ERROR.NOT_FOUND
                 );
             }
@@ -220,10 +225,11 @@ export default class CartManager {
             logger.info(`Producto ${pid} eliminado del carrito ${cid}`);
             return cart;
         } catch (error) {
+            logger.error("Error al eliminar el producto del carrito: " + error.message);
             throw CustomError.createError(
-                "deleteProductFromCart --> cartDAO", 
-                "Error al eliminar el producto del carrito", 
-                error.message, 
+                "deleteProductFromCart --> cartDAO",
+                "Error al eliminar el producto del carrito",
+                error.message,
                 TIPOS_ERROR.INTERNAL_SERVER_ERROR
             );
         }
