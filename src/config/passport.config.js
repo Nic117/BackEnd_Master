@@ -35,12 +35,12 @@ export const initPassport = () => {
                     let { first_name, last_name, age } = req.body;
 
                     if (!first_name || !last_name || !age) {
-                        return done(null, false, { message: 'Todos los campos son requeridos' });
+                        return done(null, false, { message: 'Complete los campos requeridos' });
                     }
 
                     let existEmail = await userManager.getUsersBy({ email: username })
                     if (existEmail) {
-                        return done(null, false, { message: 'El email ya existe' });
+                        return done(null, false, { message: 'El email indicado ya existe' });
                     }
 
                     password = generaHash(password)

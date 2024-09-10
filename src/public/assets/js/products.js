@@ -3,18 +3,40 @@ document.addEventListener('DOMContentLoaded', function () {
     initializeSortSelect();
 });
 
-
 const comprar = async (pid) => {
-    let inputCart = document.getElementById("cart")
-    let cid = inputCart.value
-    console.debug(`Producto con id ${pid}, Carrito ${cid}`)
+    let inputCart = document.getElementById("cart");
+    let cid = inputCart.value;
+    console.debug(`Producto con id ${pid}, Carrito ${cid}`);
 
     let response = await fetch(`/api/carts/${cid}/products/${pid}`, {
         method: "post"
-    })
+    });
 
     if (response.status === 200) {
-        let datos = await response.json()
+        let datos = await response.json();
+        Toastify({
+            text: "Producto agregado al carrito",
+            duration: 3000,
+            gravity: "top",
+            position: "right",
+            style: {
+                background: "#4CAF50",
+                color: "white",
+                borderRadius: "8px"
+            },
+        }).showToast();
+    } else {
+        Toastify({
+            text: "Error al agregar el producto",
+            duration: 3000,
+            gravity: "top",
+            position: "right",
+            style: {
+                background: "#f44336",
+                color: "white",
+                borderRadius: "8px"
+            },
+        }).showToast();
     }
 }
 
