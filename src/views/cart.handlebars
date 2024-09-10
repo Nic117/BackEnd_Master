@@ -1,26 +1,61 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Carrito de Compras</title>
-    <link rel="stylesheet" type="text/css" href="../public/assets/css/styles.css">
-</head>
-<body>
-    <h2>Carrito {{cart._id}}</h2>
-    <hr>
-    <ul id="cart">
-        {{#each cart.products}}
-        <li>
-            {{product.title}} , <br>
-            {{product.category}} <br>
-            $<strong> {{product.price}} </strong> <br>
-            Llevas <span class="quantity">{{quantity}}</span>
-        </li>
-        <hr>
-        {{/each}}
-    </ul>
-    <br><br>
-    <a href="/products">Seguir comprando</a>
-</body>
-</html>
+{{>menu}}
+<br>
+<h2>Carrito de {{user.first_name}} con id: {{cart._id}}</h2>
+<hr>
+<div class="container">
+    <div class="row">
+        <div class="col text-center">
+            <h1>Productos seleccionados</h1>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col text-center">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th scope="col"></th>
+                        <th scope="col"></th>
+                        <th scope="col">Precio U.</th>
+                        <th scope="col">Cant.</th>
+                        <th scope="col">SubTotal</th>
+                        <th class="text-end" colSpan="8">
+                            <a type="button" class="btn btn-warning p-1" onclick="clearCart('{{cart._id}}')">Vaciar
+                                carrito<i class="bi bi-trash"></i></a>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody class="table-group-divider">
+                    <input type="hidden" id="cart-id" value="{{cart._id}}" />
+                    {{#each cart.products}}
+                    <tr class="align-middle" key={{this.product._id}}>
+                        <th><img src="{{this.product.thumbnail}}" alt="{{this.product.title}}" style="width: 70px;" />
+                        </th>
+                        <td class="text-start">{{this.product.title}}</td>
+                        <td>${{this.product.price}}</td>
+                        <td>{{this.quantity}}</td>
+                        <td class="text-end">${{this.subtotal}}</td>
+                        <td class="text-end">
+                            <button onclick="removeItem('{{../cart._id}}', '{{this.product._id}}')">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    {{/each}}
+                    <tr>
+                        <td>
+                            <a href="/products" class="btn btn-warning p-1"> Seguir comprando </a>
+                        </td>
+                        <td></td>
+                        <td><strong>Suma Total</strong></td>
+                        <td>&nbsp;</td>
+                        <td class="text-end"><strong>${{totalAmount}}</strong></td>
+                        <td class="text-end">
+                            <a href="/purchase" class="btn btn-warning p-1"> Finalizar compra </a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<script src="/assets/js/cart.js"></script>

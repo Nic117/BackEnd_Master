@@ -1,144 +1,285 @@
-import { isValidObjectId } from "mongoose"; import { io } from "../app.js";
+import { isValidObjectId } from "mongoose";
+import { io } from "../app.js";
 import { productService } from "../services/productService.js";
-import { fakerES_MX as faker } from "@faker-js/faker";
+import { fakerES_MX as faker, ne } from "@faker-js/faker";
 import { CustomError } from "../utils/CustomError.js";
 import { TIPOS_ERROR } from "../utils/EErrors.js";
-
+import { userService } from "../services/userService.js";
+import nodemailer from "nodemailer"
+import { config } from "../config/config.js";
 
 export class ProductController {
-    static async getProducts(req, res, next) {
+    static getProducts = async (req, res, next) => {
         try {
-            const { page = 1, limit = 10, sort, category, title, stock } = req.query;
-            const options = { page: Number(page), limit: Number(limit), lean: true,
-                sort: sort === "asc" || sort === "desc" ? { price: sort === "asc" ? 1 : -1 } : undefined,
+            const { page = 1, limit = 10, sort } = req.query;
+
+            const options = {
+                page: Number(page),
+                limit: Number(limit),
+                lean: true,
             };
-            const searchQuery = { ...(category && { category }),
-                                  ...(title && { title: { $regex: title, $options: "i" } }),
-                                  ...(stock && !isNaN(parseInt(stock)) && { stock: parseInt(stock) }),
-                                };
-            const products = await productService.getProductsPaginate(searchQuery, options);
-            const buildLinks = ({ prevPage, nextPage }) => {
-                const baseUrl = req.originalUrl.split("?")[0];
-                const sortParam = sort ? `&sort=${sort}` : "";
-                return { prevPage, nextPage, prevLink: prevPage ? `${baseUrl}?page=${prevPage}${sortParam}` : null,
-                                        nextLink: nextPage ? `${baseUrl}?page=${nextPage}${sortParam}` : null,
-                };
-            };
-            const { prevPage, nextPage, prevLink, nextLink } = buildLinks(products);
-            if (page < 1 || page > products.totalPages) {
-                throw CustomError.createError("getProducts --> productController", "No Existe la Pagina",
-                                              "Final de la Pagina", TIPOS_ERROR.NOT_FOUND);
-            }
-            res.status(200).json({ status: "success", payload: products.docs,
-                                   totalPages: products.totalPages, page: Number(page),
-                                   hasPrevPage: products.hasPrevPage, hasNextPage: products.hasNextPage,
-                                   prevPage, nextPage, prevLink, nextLink,
-                                 });
-        } catch (error) { next(error); }
-    }
 
-    static async getProductById(req, res, next) {
-        try {
-            const { pid: id } = req.params;
-            if (!isValidObjectId(id)) {
-                throw CustomError.createError("getProductById --> productController", "ID inválido",
-                                              "Ingrese un ID válido de MONGODB", TIPOS_ERROR.ARGUMENTOS_INVALIDOS);
-            }
-            const product = await productService.getProductsBy({ _id: id });
-            if (!product) {
-                throw CustomError.createError("getProductById --> productController", "Producto no encontrado",
-                                              `No existe un producto con el ID: ${id}`, TIPOS_ERROR.NOT_FOUND);
-            }
-            res.status(200).json(product);
-        } catch (error) { next(error); }
-    }
+            const searchQuery = {};
 
-    static async createProduct(req, res, next) {
-        try {
-            const { _id: userId, rol: userRol } = req.user;
-            const { title, description, price, thumbnail, code, stock, category } = req.body;
-            if (!title || !description || !price || !thumbnail || !code || !stock || !category) {
-                throw CustomError.createError("createProduct --> productController", "Campos incompletos",
-                                              "Todos los campos son obligatorios", TIPOS_ERROR.ARGUMENTOS_INVALIDOS);
+            if (req.query.category) {
+                searchQuery.category = req.query.category;
             }
-            if (isNaN(price) || isNaN(stock)) {
-                throw CustomError.createError("createProduct --> productController", "Datos numéricos inválidos",
-                                              "El precio y stock deben ser valores numéricos", TIPOS_ERROR.ARGUMENTOS_INVALIDOS);
-            }
-            const codeExists = await productService.getProductsBy({ code });
-            if (codeExists) {
-                throw CustomError.createError("createProduct --> productController", "Código duplicado",
-                                              `El código ${code} ya está en uso`, TIPOS_ERROR.ARGUMENTOS_INVALIDOS);
-            }
-            const productData = { title, description, price, thumbnail, code, stock, category, owner: userId };
-            const newProduct = await productService.createProduct(userRol === "admin" ? productData : { ...productData, owner: userId });
-            io.emit("newProduct", title);
-            res.status(201).json(newProduct);
-        } catch (error) { next(error); }
-    }
 
-    static async updateProduct(req, res, next) {
-        try {
-            const { pid: id } = req.params;
-            if (!isValidObjectId(id)) {
-                throw CustomError.createError("updateProduct --> productController", "ID inválido",
-                                              "Ingrese un ID válido de MONGODB", TIPOS_ERROR.ARGUMENTOS_INVALIDOS);
+            if (req.query.title) {
+                searchQuery.title = { $regex: req.query.title, $options: "i" };
             }
-            const updateData = { ...req.body };
-            delete updateData._id;
-            if (updateData.code) {
-                const existingProduct = await productService.getProductsBy({ code: updateData.code });
-                if (existingProduct) {
-                    throw CustomError.createError("updateProduct --> productController", "Código duplicado",
-                                                  `Ya existe otro producto con el código ${updateData.code}`, TIPOS_ERROR.ARGUMENTOS_INVALIDOS);
+
+            if (req.query.stock) {
+                const stockNumber = parseInt(req.query.stock);
+                if (!isNaN(stockNumber)) {
+                    searchQuery.stock = stockNumber;
                 }
             }
-            if (isNaN(updateData.price) || isNaN(updateData.stock)) {
-                throw CustomError.createError("updateProduct --> productController", "Datos numéricos inválidos",
-                                              "El precio y stock deben ser valores numéricos", TIPOS_ERROR.ARGUMENTOS_INVALIDOS);
+
+            if (sort === "asc" || sort === "desc") {
+                options.sort = { price: sort === "asc" ? 1 : -1 };
             }
-            const updatedProduct = await productService.updateProduct(id, updateData);
-            res.status(200).json(`El producto ${id} se ha modificado: ${updatedProduct}`);
-        } catch (error) { next(error); }
+
+            const buildLinks = (products) => {
+                const { prevPage, nextPage } = products;
+                const baseUrl = req.originalUrl.split("?")[0];
+                const sortParam = sort ? `&sort=${sort}` : "";
+
+                const prevLink = prevPage
+                    ? `${baseUrl}?page=${prevPage}${sortParam}`
+                    : null;
+                const nextLink = nextPage
+                    ? `${baseUrl}?page=${nextPage}${sortParam}`
+                    : null;
+
+                return {
+                    prevPage: prevPage ? parseInt(prevPage) : null,
+                    nextPage: nextPage ? parseInt(nextPage) : null,
+                    prevLink,
+                    nextLink,
+                };
+            };
+
+            const products = await productService.getProductsPaginate(
+                searchQuery,
+                options
+            );
+            const { prevPage, nextPage, prevLink, nextLink } = buildLinks(products);
+
+            let requestedPage = parseInt(page);
+            if (isNaN(requestedPage) || requestedPage < 1) {
+                requestedPage = 1;
+            }
+
+            if (requestedPage > products.totalPages) {
+                CustomError.createError("getProducts --> productController", "No existe la página", "La página solicitada está fuera de rango", TIPOS_ERROR.NOT_FOUND)
+            }
+
+            const response = {
+                status: "success",
+                payload: products.docs,
+                totalPages: products.totalPages,
+                page: parseInt(page),
+                hasPrevPage: products.hasPrevPage,
+                hasNextPage: products.hasNextPage,
+                prevPage,
+                nextPage,
+                prevLink,
+                nextLink,
+            };
+
+            return res.status(200).send(response);
+        } catch (error) {
+            return next(error);
+        }
     }
 
-    static async deleteProduct(req, res, next) {
+    static getProductById = async (req, res, next) => {
+        let id = req.params.pid;
         try {
-            const { pid: id } = req.params;
             if (!isValidObjectId(id)) {
-                throw CustomError.createError("deleteProduct --> productController", "ID inválido",
-                                              "Ingrese un ID válido de MONGODB", TIPOS_ERROR.ARGUMENTOS_INVALIDOS);
+                CustomError.createError("getProductById --> productController", "ID inválido", "Ingrese un ID válido de MONGODB", TIPOS_ERROR.ARGUMENTOS_INVALIDOS)
             }
+            res.setHeader('Content-Type', 'application/json');
             const product = await productService.getProductsBy({ _id: id });
+
+            if (product) {
+                res.status(200).json(product);
+            } else {
+                CustomError.createError("getProductById --> productController", "ID incorrecto", `No existe un producto con el ID: ${id}`, TIPOS_ERROR.NOT_FOUND)
+            }
+
+        } catch (error) {
+            return next(error)
+        }
+    }
+
+    static createProduct = async (req, res, next) => {
+        let nuevoProducto
+        try {
+            const userId = req.user._id;
+            const userRol = req.user.rol;
+            const { title, description, price, thumbnail, code, stock, category } = req.body;
+
+            if (!title || !description || !price || !thumbnail || !code || !stock || !category) {
+                CustomError.createError("createProduct --> productController", "No se completaron los campos obligatorios", "Todos los campos son obligatorios", TIPOS_ERROR.ARGUMENTOS_INVALIDOS)
+            }
+
+            if (typeof price !== 'number' || typeof stock !== 'number') {
+                CustomError.createError("createProduct --> productController", "Precio y stock NaN", "El precio y stock deben ser valores numéricos", TIPOS_ERROR.ARGUMENTOS_INVALIDOS)
+            }
+
+            const codeRepeat = await productService.getProductsBy({ code })
+
+            if (codeRepeat) {
+                CustomError.createError("createProduct --> productController", "Código repetido", `Error, el código ${code} se está repitiendo`, TIPOS_ERROR.ARGUMENTOS_INVALIDOS)
+            }
+
+            const productData = { title, description, price, thumbnail, code, stock, category };
+
+            if (userRol === "admin") {
+                productData.owner = "admin";
+            } else {
+                productData.owner = userId;
+            }
+
+            const user = await userService.getUserId({ _id: userId });
+            if (user) productData.owner = user.rol;
+
+            nuevoProducto = await productService.createProduct(productData)
+            io.emit("newProduct", title)
+            res.setHeader('Content-Type', 'application/json');
+            return res.status(201).json(nuevoProducto);
+
+
+        } catch (error) {
+            return next(error)
+        }
+    }
+
+    static updateProduct = async (req, res, next) => {
+        let id = req.params.pid;
+
+        try {
+
+            if (!isValidObjectId(id)) {
+                CustomError.createError("updateProduct --> productController", "ID inválido", "Ingrese un ID válido de MONGODB", TIPOS_ERROR.ARGUMENTOS_INVALIDOS)
+            }
+
+            res.setHeader('Content-Type', 'application/json');
+            let stock, price
+            let updateData = req.body
+
+            if (updateData._id) {
+                delete updateData._id;
+            }
+
+            if (updateData.code) {
+                let exist;
+
+                try {
+                    exist = await productService.getProductsBy({ code: updateData.code })
+                    if (exist) {
+                        res.setHeader('Content-Type', 'application/json');
+                        CustomError.createError("updateProduct --> productController", "Código repetido", `Ya existe otro producto con codigo ${updateData.code}`, TIPOS_ERROR.ARGUMENTOS_INVALIDOS)
+                    }
+                } catch (error) {
+                    return next(error)
+                }
+            }
+
+            if ((stock !== undefined && isNaN(stock)) || (price !== undefined && isNaN(price))) {
+                CustomError.createError("updateProduct --> productController", "Stock y/o precio NaN", "Stock y precio deben ser números", TIPOS_ERROR.ARGUMENTOS_INVALIDOS)
+            }
+
+            try {
+                let productoModificado = await productService.updateProduct(id, updateData);
+                return res.status(200).json({ payload: `El producto ${id} se ha modificado: ${productoModificado}` });
+            } catch (error) {
+                CustomError.createError("updateProduct --> productController", "Error al modificar el producto", "Error al modificar el producto", TIPOS_ERROR.ARGUMENTOS_INVALIDOS)
+            }
+        } catch (error) {
+            return next(error)
+        }
+    }
+
+    static deleteProduct = async (req, res, next) => {
+        try {
+            let id = req.params.pid;
+            const userId = req.user._id;
+
+            if (!isValidObjectId(id)) {
+                CustomError.createError("deleteProduct --> productController", "ID inválido", "Ingrese un ID válido de MONGODB", TIPOS_ERROR.ARGUMENTOS_INVALIDOS)
+            }
+
+            const product = await productService.getProductsBy({ _id: id });
+            const user = await userService.getUserId({ _id: userId });
             if (!product) {
-                throw CustomError.createError("deleteProduct --> productController", "Producto no encontrado",
-                                              `No existe un producto con el ID: ${id}`, TIPOS_ERROR.NOT_FOUND);
+                CustomError.createError("deleteProduct --> productController", "No se encuentra el producto", `No existe un producto con el ID: ${id}`, TIPOS_ERROR.NOT_FOUND)
             }
             const deletedProduct = await productService.deleteProduct(id);
             if (deletedProduct.deletedCount > 0) {
-                const products = await productService.getProducts();
+                let products = await productService.getProducts();
                 io.emit("deletedProduct", products);
-                res.status(200).json({ message: `El producto con ID ${id} fue eliminado` });
+
+                if (user && user.rol === 'admin' && user.email) {
+                    const transport = nodemailer.createTransport({
+                        service: "gmail",
+                        port: 587,
+                        auth: {
+                            user: config.APP_MAIL_DIR,
+                            pass: config.APP_MAIL_PASS,
+                        },
+                    });
+
+                    await transport.sendMail({
+                        from: `Eliminación de producto <${config.APP_MAIL_DIR}>`,
+                        to: user.email,
+                        subject: "Notificación de eliminación de producto",
+                        html: `
+                            <div>
+                                <h1>Estimado/a ${user.first_name},</h1>
+                                <p>Le informamos que el producto con ID ${id} ha sido eliminado.</p>
+                            </div>
+                            <div>
+                                <p>Si tiene alguna pregunta, no dude en contactarnos.</p>
+                            </div>
+                        `,
+                    });
+
+                    console.log(`Correo enviado a: ${user.email}`);
+                }
+
+                return res.status(200).json({ payload: `El producto con id ${id} fue eliminado` });
             } else {
-                throw CustomError.createError("deleteProduct --> productController", "Producto no encontrado",
-                                              `No existe un producto con el ID ${id}`, TIPOS_ERROR.NOT_FOUND);
+                CustomError.createError("deleteProduct --> productController", "No se encuentra el producto", `No existe ningun producto con el id ${id}`, TIPOS_ERROR.NOT_FOUND)
             }
-        } catch (error) { next(error); }
+
+        } catch (error) {
+            return next(error)
+        }
     }
 
-    static async mock(req, res) {
+    static mock = async (req, res) => {
         try {
-            const products = Array.from({ length: 100 }, (_, i) => ({
-                productNumber: i + 1, status: faker.datatype.boolean(0.9),
-                title: faker.commerce.productName(), description: faker.commerce.productDescription(),
-                price: faker.commerce.price({ symbol: '$' }), thumbnail: faker.image.url(),
-                code: `C-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
-                stock: faker.number.int({ min: 0, max: 100 }), category: faker.commerce.department(),
-            }));
-            res.status(200).json(products);
+            let products = [];
+            let number = 1
+            for (let i = 0; i < 100; i++) {
+                products.push({
+                    productNumber: number++,
+                    status: faker.datatype.boolean(0.9),
+                    title: faker.commerce.productName(),
+                    description: faker.commerce.productDescription(),
+                    price: faker.commerce.price({ symbol: '$' }),
+                    thumbnail: faker.image.url(),
+                    code: `C-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+                    stock: faker.number.int({ min: 0, max: 100 }),
+                    category: faker.commerce.department()
+                })
+            }
+            return res.status(200).json(products);
         } catch (error) {
-            CustomError.createError("mock --> productController", null,
-                                    "Error al cargar la pagina", TIPOS_ERROR.INTERNAL_SERVER_ERROR);
+            CustomError.createError("mock --> productController", null, "Un error inesperado ocurrió al cargar la página", TIPOS_ERROR.INTERNAL_SERVER_ERROR);
         }
     }
 }

@@ -1,29 +1,49 @@
-import UserManager from "../dao/UsersDAO.js";
+import UserManager from "../dao/UsersDAO.js"
 
 class UserService {
     constructor(dao) {
-        this.dao = dao;
+        this.dao = dao
     }
 
-    createUser = async (user) => await this.dao.createUser(user);
+    async createUser(user) {
+        return await this.dao.createUser(user);
+    }
 
-    getAllUser = async () => await this.dao.getAllUser();
+    async getAllUser() {
+        return await this.dao.getAllUser();
+    }
 
-    getUsersBy = async (filter = {}) => await this.dao.getUsersBy(filter);
+    async getInactiveUsers(days) {
+        return await this.dao.getInactiveUsers(days);
+    }
 
-    getDocumentsByUserId = async (id) => await this.dao.getDocumentsByUserId(id);
+    async getUsersBy(filtro = {}) {
+        return await this.dao.getUsersBy(filtro);
+    }
 
-    updatePassword = async (id, hashedPassword) => this.dao.update(id, hashedPassword);
+    async getDocumentsByUserId(id) {
+        return await this.dao.getDocumentsByUserId(id)
+    }
 
-    updateRol = async (id, newRole) => this.dao.updateRol(id, newRole);
+    async updatePassword(id, hashedPassword) {
+        return this.dao.update(id, hashedPassword)
+    }
 
-    getUserId = async (id) => this.dao.getUsersById({ _id: id });
+    async updateRol(id, nuevoRol) {
+        return this.dao.updateRol(id, nuevoRol)
+    }
 
-    deleteUserByEmail = async (userEmail) => await this.dao.deleteUserByEmail(userEmail);
+    async getUserId(id) {
+        return this.dao.getUsersById({ _id: id })
+    }
 
-    updateUser = async (uid, update) => await this.dao.updateUser(uid, update);
+    async deleteUserByEmail(userEmail) {
+        return await this.dao.deleteUserByEmail(userEmail);
+    };
 
-    deleteUsers = async (filter) => await this.dao.deleteUsers(filter);
+    async updateUser(uid, update) {
+        return await this.dao.updateUser(uid, update);
+    }
+
 }
-
-export const userService = new UserService(new UserManager());
+export const userService = new UserService(new UserManager())

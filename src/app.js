@@ -23,78 +23,87 @@ import { router as productRouter } from './routes/productRouter.js';
 import { router as sessionsRouter } from './routes/sessionRouter.js';
 import { userService } from './services/userService.js';
 
+
 const PORT = config.PORT;
 const app = express();
 
-// Configuración de Handlebars
 app.engine('handlebars', engine());
 app.set('view engine', 'handlebars');
 app.set('views', path.join(__dirname, '/views'));
 
-// Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, '/public')));
-app.use(cookieParser());
+app.use(cookieParser())
 app.use(cors());
 
-// Inicialización de Passport
-initPassport();
-app.use(passport.initialize());
-app.use(middLogger);
+initPassport()
+app.use(passport.initialize())
+app.use(middLogger)
 
-// Rutas
 app.use('/', vistasRouter);
 app.use('/api/product', productRouter);
 app.use('/api/carts', cartRouter);
 app.use('/api/sessions', sessionsRouter);
 app.use('/api/users', userRouter);
-app.use('/loggerTest', loggerRouter);
+app.use('/loggerTest', loggerRouter)
 app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(specs));
 
-// Manejo de errores
 app.use(errorHandler);
 
-// Inicialización del servidor
+let usuarios = [];
+
 const server = app.listen(PORT, () => {
-    logger.info(`Servidor escuchando en puerto ${PORT}`);
+    logger.info(`Server escuchando en puerto ${PORT}`);
 });
 
-// Manejo de excepciones no controladas
 process.on("uncaughtException", error => {
-    logger.error(error.message, "Error no controlado");
-});
+    logger.error(error.message, "Error no controlado")
+})
 
-// Configuración de Socket.IO
 export const io = new Server(server);
 
 io.on("connection", (socket) => {
-    logger.info(`Cliente conectado: ${socket.id}`);
+    logger.info(`Se conecto el cliente ${socket.id}`)
 
-    const emitUsers = async () => {
-        try {
-            const users = await userService.getAllUser();
-            socket.emit("users", users);
-        } catch (error) {
-            logger.error("Error al obtener usuarios:", error);
-        }
+    const emitUsers = () => {
+        io.emit("usersList", Object.values(usuarios));
     };
 
     socket.on("id", async (userName) => {
         usuarios[socket.id] = userName;
-        const messages = await messageModelo.find();
-        socket.emit("previousMessages", messages);
-        socket.broadcast.emit("newUser", userName);
+        try {
+            let messages = await messageModelo.find();
+            socket.emit("previousMessages", messages);
+            socket.broadcast.emit("newUser", userName);
+            emitUsers();
+        } catch (error) {
+            console.error("Error al obtener mensajes previos:", error);
+        }
     });
 
     socket.on("newMessage", async (userName, message) => {
-        await messageModelo.create({ user: userName, message });
-        io.emit("sendMessage", userName, message);
+        try {
+            const user = await userService.getUsersBy({ email: userName });
+            const avatar = user?.avatar || "/assets/img/profiles/defaultProfilePic.jpg";
+
+            await messageModelo.create({ user: userName, message });
+            io.emit("sendMessage", userName, message, avatar);
+        } catch (error) {
+            console.error("Error al enviar mensaje:", error);
+        }
     });
 
-    socket.on("documentUploadSuccess", async ({ userId }) => {
+    socket.on("documentUploadSuccess", async ({ userId, documentType }) => {
         const documents = await userService.getDocumentsByUserId(userId);
         io.emit("documentsUpdated", { userId, documents });
+    });
+
+    socket.on("getUsers", (callback) => {
+        userService
+            .getAllUser({})
+            .then((users) => callback(users))
+            .catch((error) => console.error(error));
     });
 
     socket.on("updateUserRole", async (userId) => {
@@ -108,33 +117,33 @@ io.on("connection", (socket) => {
                 } else {
                     logger.info("Rol del usuario actualizado exitosamente.");
                     io.emit("userRoleUpdated", user);
-                    await emitUsers();
+                    emitUsers();
                 }
             }
         } catch (error) {
-            logger.error("Error al actualizar rol de usuario:", error);
+            console.error("Error al actualizar rol de usuario:", error);
         }
     });
 
     socket.on("disconnect", () => {
         const userName = usuarios[socket.id];
-        delete usuarios[socket.id];
         if (userName) {
+            delete usuarios[socket.id];
             io.emit("userDisconnected", userName);
+            emitUsers();
         }
     });
-});
+})
 
-// Conexión a la base de datos
 const connDB = async () => {
     try {
-        await mongoose.connect(config.MONGO_URL, { dbName: config.DB_NAME });
-        logger.info("Conexión a MongoDB activa");
+        await mongoose.connect(config.MONGO_URL, { dbName: config.DB_NAME })
+        logger.info("Mongoose activo")
     } catch (error) {
-        logger.error("Error al conectar a la base de datos", error.message);
+        logger.error("Error al conectar a DB", error.message)
     }
-};
+}
 
-connDB();
+connDB()
 
 export { app, server };

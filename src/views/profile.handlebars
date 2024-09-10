@@ -1,7 +1,213 @@
-<h2>Usuario {{user.first_name}}</h2>
-<hr><br>{{>menu}}<br>
-<h3>Mi Perfil:</h3>
-<p>Nombre: <strong>{{user.first_name}}</strong></p>
-<p>Apellido: <strong>{{user.last_name}}</strong></p>
-<p>Edad: <strong>{{user.age}}</strong></p>
-<p>e-mail: <strong>{{user.email}}</strong></p>
+{{>menu}}<br>
+
+<div class="container mx-auto px-4">
+    <div class="card mb-3">
+        <div class="card-body">
+            <div class="row">
+                <!-- Información del perfil -->
+                <div class="col-md-5">
+                    <div class="card">
+                        <div class="card-header antiquewhite">
+                            <strong><i class="bi bi-person-vcard me-2"></i> Datos del perfil:</strong>
+                        </div>
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item d-flex align-items-center">
+                                <i class="bi bi-person-badge-fill me-2" style="width: 20px;"></i>
+                                <strong>ID de Usuario: </strong>
+                                <span class="variable-text" id="ID">{{user._id}}</span>
+                            </li>
+                            <li class="list-group-item d-flex align-items-center">
+                                <i class="bi bi-person-fill me-2" style="width: 20px;"></i>
+                                <strong>Nombre: </strong>
+                                <span class="variable-text">{{user.first_name}} {{user.last_name}}</span>
+                            </li>
+                            {{#if user.age}}
+                            <li class="list-group-item d-flex align-items-center">
+                                <i class="bi bi-cake2-fill me-2" style="width: 20px;"></i>
+                                <strong>Edad: </strong>
+                                <span class="variable-text">{{user.age}}</span>
+                            </li>
+                            {{/if}}
+                            <li class="list-group-item d-flex align-items-center">
+                                <i class="bi bi-envelope-at me-2" style="width: 20px;"></i>
+                                <strong>Correo Electrónico: </strong>
+                                <span class="variable-text">{{user.email}}</span>
+                            </li>
+                            <li class="list-group-item d-flex align-items-center">
+                                <i class="bi bi-person-fill-gear me-2" style="width: 20px;"></i>
+                                <strong>Tipo de Usuario: </strong>
+                                <span id="userRole" class="variable-text">{{user.rol}}</span>
+                            </li>
+                            <li class="list-group-item d-flex align-items-center">
+                                <i class="bi bi-cart2 me-2" style="width: 20px;"></i>
+                                <strong>ID de Carrito: </strong>
+                                <span class="variable-text">{{user.cart}}</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Subir foto de perfil -->
+                <div class="col-md-7">
+                    <div class="card">
+                        <div class="card-header antiquewhite">
+                            <strong><i class="bi bi-camera me-2"></i> Subir tu Foto de Perfil</strong>
+                        </div>
+                        <div class="row align-items-center">
+                            <!-- Imagen de perfil actual -->
+                            <div class="col-md-3 d-flex justify-content-center">
+                                <div class="card border-0"
+                                    style="background-color: transparent; border-radius: 0; box-shadow: none;">
+                                    <div class="card-body text-center">
+                                        <h5 class="card-title">Foto Actual</h5>
+                                        {{#if user.avatar}}
+                                        <img id="currentProfilePic" src="{{user.avatar}}"
+                                            alt="Foto de perfil actual" class="img-fluid rounded-circle"
+                                            style="max-width: 150px;">
+                                        {{else}}
+                                        <img id="currentProfilePic" src="/assets/img/profiles/defaultProfilePic.jpg"
+                                            alt="Foto de perfil actual" class="img-fluid rounded-circle"
+                                            style="max-width: 150px;">
+                                        {{/if}}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Formulario para subir nueva foto -->
+                            <div class="col-md-5 text-center">
+                                <div class="mt-4 mb-4">
+                                    <input type="file" id="profilePictureInput" class="form-control" name="documents"
+                                        accept="image/*" onchange="previewImage()">
+                                    <button class="btn btn-warning p-1 mt-3 text-uppercase mb-4 ms-4"
+                                        id="btn-upload-profile-pic">Subir Foto de Perfil</button>
+                                </div>
+                            </div>
+
+                            <!-- Vista previa de la nueva imagen -->
+                            <div class="col-md-3 d-flex justify-content-center">
+                                <div class="card border-0"
+                                    style="background-color: transparent; border-radius: 0; box-shadow: none;">
+                                    <div class="card-body text-center">
+                                        <div class="position-relative" style="width: fit-content; margin: 0 auto;">
+                                            <div id="imagePreview" class="text-center"><i class="bi bi-image me-2"
+                                                    style="font-size:100px"></i></div>
+                                            <div id="cancelButtonContainer" class="position-absolute top-0 end-0"
+                                                onclick="cancelImageSelection()">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<div class="row mx-auto px-4">
+    <div class="card mb-3">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header antiquewhite">
+                            <strong><i class="bi bi-stars me-2"></i> Actualización a Usuario / Premium</strong>
+                        </div>
+                        <p class="ms-3 mt-4 mb-4" style="width: 90%; align-self: center"> Para avanzar con la
+                            actualización a la categoría de usuario premium, le solicitamos que proporcione los
+                            documentos requeridos a continuación </p>
+
+                        <!-- Card para Documento de Identificacion -->
+                        <div class="mx-3">
+                            <div class="card mb-4">
+                                <div class="card-body text-center px-0" style="align-self: center;">
+                                    <h5 class="card-title mb-4">Documento de identificación</h5>
+                                    <div class="justify-content-center align-items-center mx-2">
+                                        <input type="file" id="identificationInput" class="form-control"
+                                            name="documents" />
+                                        <button class="btn btn-warning p-1 mt-3"
+                                            id="btn-upload-identification"><i
+                                                class="bi bi-cloud-arrow-up me-2"></i>Subir archivo</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Card para Documento de Domicilio -->
+                        <div class="mx-3">
+                            <div class="card mb-4">
+                                <div class="card-body text-center px-0" style="align-self: center;">
+                                    <h5 class="card-title mb-4">Documento de domicilio</h5>
+                                    <div class="justify-content-center align-items-center mx-2">
+                                        <input type="file" id="upload-addressInput" class="form-control"
+                                            name="documents" />
+                                        <button class="btn btn-warning p-1 mt-3" id="btn-upload-address"><i
+                                                class="bi bi-cloud-arrow-up me-2"></i>Subir archivo</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Card para Documento de Estado de Cuenta -->
+                        <div class="mx-3">
+                            <div class="card mb-4">
+                                <div class="card-body text-center px-0" style="align-self: center;">
+                                    <h5 class="card-title mb-4">Documento de estado de cuenta</h5>
+                                    <div class="justify-content-center align-items-center mx-2">
+                                        <input type="file" id="accountStatementInput" class="form-control"
+                                            name="documents" />
+                                        <button class="btn btn-warning p-1 mt-3"
+                                            id="btn-upload-account-statement"><i class="bi bi-cloud-arrow-up me-2"></i>Subir
+                                            archivo</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-around my-3">
+                            <button id="btn-premium" class="btn btn-warning px-5 text-uppercase mb-1"
+                                data-user-id="{{user._id}}">
+                                <i class="bi bi-star me-2"></i> Actualizar Rol </button>
+                        </div>
+
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header antiquewhite">
+                            <strong><i class="bi bi-file-earmark-text me-2"></i> Documentos</strong>
+                            <p hidden id="documents" data-documents={{documentsJson}}></p>
+
+                        </div>
+                        <ol class="list-group">
+                            <li class="list-group-item d-flex align-items-center">
+                                <i class="bi bi-person-vcard me-2" style="width: 20px;"></i> <strong>1-
+                                    Identificación</strong>
+                                <span class="badge bg-danger ms-auto" id="status-ID">Faltante</span>
+                            </li>
+                            <li class="list-group-item d-flex align-items-center">
+                                <i class="bi bi-house-add me-2" style="width: 20px;"></i> <strong>2- Comprobante de
+                                    domicilio</strong>
+                                <span class="badge bg-danger ms-auto" id="status-adress">Faltante</span>
+                            </li>
+                            <li class="list-group-item d-flex align-items-center">
+                                <i class="bi bi-cash-stack me-2" style="width: 20px;"></i> <strong>3-
+                                    Comprobante
+                                    de
+                                    estado de cuenta</strong>
+                                <span class="badge bg-danger ms-auto" id="status-statement">Faltante</span>
+                            </li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+<script src="/socket.io/socket.io.js"></script>
+<script src="/assets/js/profileScript.js" defer></script>

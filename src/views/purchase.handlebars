@@ -1,0 +1,108 @@
+{{>menu}}
+
+<div class="container">
+    {{#if payload}}
+    <div class="card mt-4">
+        <div class="text-black antiquewhite p-2">
+            <i class="fas fa-receipt"></i> Resumen de la compra:
+        </div>
+        <ul class="list-group list-group-flush">
+            <li class="list-group-item">Ticket ID: {{payload.ticketId}}</li>
+            <li class="list-group-item">Monto total: ${{payload.amount}}</li>
+            <li class="list-group-item">Usuario: {{user.first_name}} {{user.last_name}}</li>
+            <li class="list-group-item">Email: {{payload.purchaser}}</li>
+        </ul>
+    </div>
+
+    <div class="card mt-4">
+        <div class="text-black antiquewhite p-2">
+            <i class="bi bi-bag"></i> Detalle de la compra
+        </div>
+        <div class="card-body">
+            {{#if payload.productosNoProcesados}}
+            <div class="card mb-3">
+                <div class="text-black bg-light p-2">
+                    <i class="bi bi-x-octagon"></i> Productos no procesados por falta de stock
+                </div>
+                <br>
+                <div class="col text-center">
+                    <table class="table mx-auto" style="width: max-content;">
+                        <thead>
+                            <tr class="text-uppercase align-middle">
+                                <th scope="col">ID del producto</th>
+                                <th scope="col">Nombre del producto</th>
+                                <th scope="col">Cantidad</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-body" class="table-group-divider" style="width: max-content;">
+                            {{#each payload.productosNoProcesados}}
+                            <tr class="align-middle">
+                                <td>{{this.product._id}}</td>
+                                <td>{{this.product.title}}</td>
+                                <td>{{this.quantity}}</td>
+                            </tr>
+                            {{/each}}
+                        </tbody>
+                    </table>
+                </div>
+                <div>
+                    <h2 class="text-uppercase text-center m-4">Importe no contabilizado: - ${{notProcessedAmount}}</h2>
+                </div>
+            </div>
+            {{/if}}
+
+            <div class="card mb-3">
+                <div class="text-black bg-light p-2">
+                    <i class="bi bi-check-circle"></i> Productos procesados correctamente
+                </div>
+                <br>
+                <div class="col text-center">
+                    <table class="table mx-auto" style="width: max-content;">
+                        <thead>
+                            <tr class="text-uppercase align-middle">
+                                <th scope="col">ID del producto</th>
+                                <th scope="col">Nombre del producto</th>
+                                <th scope="col">Cantidad</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-body" class="table-group-divider" style="width: max-content;">
+                            {{#each payload.productosProcesados}}
+                            <tr class="align-middle">
+                                <td>{{this.product._id}}</td>
+                                <td>{{this.product.title}}</td>
+                                <td>{{this.quantity}}</td>
+                            </tr>
+                            {{/each}}
+                        </tbody>
+                    </table>
+                </div>
+                <div>
+                    <h2 class="text-uppercase text-center m-4">Monto final: ${{processedAmount}}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="d-flex justify-content-between mt-4">
+        <form action="/products" method="get">
+            <button class="btn btn-warning p-1">Continuar Comprando</button>
+        </form>
+    </div>
+    {{else}}
+
+    {{#if notProcessed}}
+    <div class="card mt-4">
+        <div class="text-black antiquewhite p-2">
+            <i class="bi bi-x-octagon"></i> Productos no procesados por falta de stock: ${{notProcessedAmount}}
+        </div>
+        <ul class="list-group list-group-flush">
+            {{#each notProcessed}}
+            <li class="list-group-item">ID del producto: {{this.product._id}}, Cantidad: {{this.quantity}}</li>
+            {{/each}}
+        </ul>
+    </div>
+    {{/if}}
+    {{/if}}
+</div>
+
+<script src="/assets/js/purchase.js"></script>

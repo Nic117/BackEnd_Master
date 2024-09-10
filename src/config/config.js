@@ -1,34 +1,29 @@
 import dotenv from "dotenv";
-import { Command, Option } from "commander";
+import { Command, Option } from "commander"
 import path from "path";
 import { fileURLToPath } from 'url';
-
-
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 
-const envPaths = {
-    dev: path.join(__dirname, '../.env.dev'),
-    prod: path.join(__dirname, '../.env.prod')
-};
+const devPath = path.join(__dirname, '../.env.dev');
+const prodPath = path.join(__dirname, '../.env.prod');
 
+let programa = new Command()
 
-const programa = new Command();
-programa
-    .addOption(new Option("-m, --mode <modo>", "Modo de ejecución del script")
-    .choices(["dev", "prod"])
-    .default("dev"));
+programa.addOption(new Option("-m, --mode <modo>", "Mode de ejecucion del script").choices(["dev", "prod"]).default("dev"))
+programa.parse()
 
-programa.parse();
-const { mode } = programa.opts();
+const argumentos = programa.opts()
 
+const mode = argumentos.mode
 
-dotenv.config({
-    path: envPaths[mode] || envPaths.dev, 
-    override: true
-});
-
+dotenv.config(
+    {
+        path: mode === "prod" ? prodPath : devPath,
+        override: true
+    }
+)
 
 export const config = {
     PORT: process.env.PORT || 3000,
@@ -39,5 +34,9 @@ export const config = {
     SECRET: process.env.SECRET,
     CLIENT_ID_GITHUB: process.env.CLIENT_ID_GITHUB,
     CLIENT_SECRET_GITHUB: process.env.CLIENT_SECRET_GITHUB,
-    MODE: mode 
-};
+    MODE: process.env.MODE,
+    APP_MAIL_PASS: process.env.APP_MAIL_PASS,
+    APP_MAIL_DIR: process.env.APP_MAIL_DIR,
+    ADMIN_MAIL: process.env.ADMIN_MAIL,
+    ADMIN_MAIL_PASSWORD: process.env.ADMIN_MAIL_PASSWORD
+}

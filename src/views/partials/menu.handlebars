@@ -1,28 +1,34 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title></title>
-    <link rel="stylesheet" href="/src/public/assets/css/styles.css">
-</head>
-<body>
-<ul>
-    <li><a href="/">Inicio</a></li>
-    {{#if login}}
-    <li><a href="/profile">Perfil</a></li>
-    <li><a href="/products">Productos</a></li>
-    <li><a href="/realtimeproducts">Productos en tiempo real</a></li>
-    <li><a href="/chat">Chat</a></li>
-    <li><a href="/carts/{{cart._id}}">Ver carrito</a></li>
-
-</ul>
-<button><a href="/api/sessions/logout">Cerrar Session</a></button>
-{{else}}
-<li><a href="/register">Registro</a></li>
-<li><a href="/login">Login</a></li>
-{{/if}}
-</ul>
-
-</body>
-</html>
+<div class="container-fluid">
+    <div class="row">
+        <nav class="navbar navbar-expand-lg" style="background-color: #00cccc;">
+            <div class="container-fluid">
+                <div class="collapse navbar-collapse d-flex justify-content-around" id="navbarNavAltMarkup">
+                    <div class="navbar-nav"></div>
+                    <nav class="nav-link mx-3"><a href="/"><i class="" style="font-size: 30px; color: #fff;"></i></a></nav>
+                    {{#if login}}
+                    {{#if isAdmin}}
+                    <nav class="nav-link mx-3"><a href="/adminPanel" style="color: #fff;">Admin Panel</a></nav>
+                    <nav class="nav-link mx-3"><a href="/realtimeproducts" style="color: #fff;">Productos en tiempo real</a></nav>
+                    {{else}}
+                    {{#if user.avatar}}
+                    <nav class="nav-link mx-3"><a href="/profile"><img src="{{user.avatar}}" alt="Perfil" style="max-width: 50px; border-radius: 100%;"></a></nav>
+                    {{else}}
+                    <nav class="nav-link mx-3"><a href="/profile"><img src="/assets/img/profiles/defaultProfilePic.jpg" alt="Perfil" style="max-width: 50px; border-radius: 100%;"></a></nav>
+                    {{/if}}
+                    <nav class="nav-link mx-3"><a href="/products" style="color: #fff;">Productos</a></nav>
+                    <nav class="nav-link mx-3"><a href="/realtimeproducts" style="color: #fff;">Productos en tiempo real</a></nav>
+                    <nav class="nav-link mx-3"><a href="/chat"><i class="bi bi-chat-dots-fill" style="font-size: 30px; color: #fff;"></i></a></nav>
+                    <nav class="nav-link mx-3"><a href="/carts/{{cart._id}}"><i class="bi bi-bag-fill" style="font-size: 30px; color: #fff;"></i></a></nav>
+                    {{/if}}
+                    <button class="btn btn-outline-light mt-3 mb-3"><a href="/api/sessions/logout" style="color: #fff;">Logout</a></button>
+                    {{else}}
+                    <div class="nav-link mx-3 d-flex">
+                        <nav class="nav-link mx-2"><a href="/register" style="color: #fff;">Registro</a></nav>
+                        <nav class="nav-link mx-2"><a href="/login" style="color: #fff;">Iniciar sesión</a></nav>
+                    </div>
+                    {{/if}}
+                </div>
+            </div>
+        </nav>
+    </div>
+</div>

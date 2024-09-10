@@ -5,214 +5,277 @@ import { CustomError } from '../utils/CustomError.js';
 import { TIPOS_ERROR } from '../utils/EErrors.js';
 import jwt from 'jsonwebtoken';
 import { SECRET } from '../utils/utils.js';
+import { ticketService } from '../services/ticketService.js';
+import { isValidObjectId } from "mongoose";
+import { processPurchase } from '../utils/purchaseHelper.js';
+import { userService } from '../services/userService.js';
+
+
+
 
 export class ViewController {
-    
     static getProducts = async (req, res) => {
+
+        req.logger.info("Prueba log info")
+        let products
         try {
-            const products = await productService.getProducts();
-            res.setHeader('Content-Type', 'text/html');
-            res.status(200).render('home', { products });
+            products = await productService.getProducts()
         } catch (error) {
-            CustomError.createError(
-                "getProducts --> ViewController", 
-                null, 
-                "Ocurrió un error inesperado al obtener los productos", 
-                TIPOS_ERROR.INTERNAL_SERVER_ERROR
-            );
+            CustomError.createError("getProducts --> ViewController", null, "Un error inesperado ocurrió al obtener los productos", TIPOS_ERROR.INTERNAL_SERVER_ERROR);
         }
-    }
+        res.setHeader('Content-Type', 'text/html')
+        res.status(200).render('home', { products })
+    };
 
     static getRealTimeProducts = async (req, res) => {
+        let products
+        let user = req.user;
+        let cart = { _id: req.user.cart }
+        const isAdmin = user && user.rol === 'admin';
         try {
-            const products = await productService.getProducts();
-            res.setHeader('Content-Type', 'text/html');
-            res.status(200).render('realTime', { products });
+            products = await productService.getProducts();
         } catch (error) {
-            CustomError.createError(
-                "getRealTimeProducts --> ViewController", 
-                null, 
-                "Ocurrió un error inesperado al obtener los productos en tiempo real", 
-                TIPOS_ERROR.INTERNAL_SERVER_ERROR
-            );
+            CustomError.createError("getRealTimeProducts --> ViewController", null, "Un error inesperado ocurrió al obtener los productos en tiempo real", TIPOS_ERROR.INTERNAL_SERVER_ERROR);
         }
-    }
+        res.setHeader('Content-Type', 'text/html')
+        res.status(200).render('realTime', { products, user, cart, login: req.user, isAdmin })
+    };
 
     static getChat = (req, res) => {
         try {
-            res.setHeader("Content-Type", "text/html");
-            res.status(200).render("chat");
+            let cart = { _id: req.user.cart }
+            res.setHeader("Content-Type", "text/html")
+            res.status(200).render("chat", { user: req.user, cart, login: req.user })
         } catch (error) {
-            CustomError.createError(
-                "getChat --> ViewController", 
-                null, 
-                "Ocurrió un error inesperado al cargar el chat", 
-                TIPOS_ERROR.INTERNAL_SERVER_ERROR
-            );
+            CustomError.createError("getChat --> ViewController", null, "Un error inesperado ocurrió al cargar el chat", TIPOS_ERROR.INTERNAL_SERVER_ERROR);
         }
-    }
+    };
 
     static getProductsPaginate = async (req, res, next) => {
+
+        let user = req.user;
+        let cart = { _id: req.user.cart }
         try {
             const { page = 1, limit = 10, sort } = req.query;
-            const options = { page: Number(page), limit: Number(limit), lean: true };
-            const searchQuery = this.buildSearchQuery(req.query);
-            
-            if (isNaN(page) || page < 1) {
-                return this.handleInvalidPage(req, res, page);
+
+            const options = {
+                page: Number(page),
+                limit: Number(limit),
+                lean: true,
+            };
+
+            const searchQuery = {};
+
+            if (req.query.category) {
+                searchQuery.category = req.query.category;
             }
 
-            const products = await productService.getProductsPaginate(searchQuery, options);
-            if (page > products.totalPages) {
-                return this.handleInvalidPage(req, res, page, products.totalPages);
+            if (req.query.title) {
+                searchQuery.title = { $regex: req.query.title, $options: "i" };
             }
 
-            const { prevPage, nextPage, prevLink, nextLink } = this.buildLinks(req, products, sort);
+            if (req.query.stock) {
+                const stockNumber = parseInt(req.query.stock);
+                if (!isNaN(stockNumber)) {
+                    searchQuery.stock = stockNumber;
+                }
+            }
+
+            if (sort === "asc" || sort === "desc") {
+                options.sort = { price: sort === "asc" ? 1 : -1 };
+            }
+
+            const buildLinks = (products) => {
+                const { prevPage, nextPage } = products;
+                const baseUrl = req.originalUrl.split("?")[0];
+                const sortParam = sort ? `&sort=${sort}` : "";
+
+                const prevLink = prevPage
+                    ? `${baseUrl}?page=${prevPage}${sortParam}`
+                    : null;
+                const nextLink = nextPage
+                    ? `${baseUrl}?page=${nextPage}${sortParam}`
+                    : null;
+
+                return {
+                    prevPage: prevPage ? parseInt(prevPage) : null,
+                    nextPage: nextPage ? parseInt(nextPage) : null,
+                    prevLink,
+                    nextLink,
+                };
+            };
+
+            const products = await productService.getProductsPaginate(
+                searchQuery,
+                options
+            );
+            const { prevPage, nextPage, prevLink, nextLink } = buildLinks(products);
             const categories = await productsModelo.distinct("category");
-            const cart = { _id: req.user.cart };
-            const user = req.user;
 
-            res.render("products", {
+            let requestedPage = parseInt(page);
+            if (isNaN(requestedPage)) {
+                CustomError.createError("getProductsPaginate --> ViewController", "Page is NaN", "Page debe ser un número", TIPOS_ERROR.ARGUMENTOS_INVALIDOS)
+            }
+            if (requestedPage < 1) {
+                requestedPage = 1;
+            }
+
+            if (requestedPage > products.totalPages) {
+                CustomError.createError("getProductsPaginate --> ViewController", "Cantidad de páginas inválidas", "Lo sentimos, el sitio aún no cuenta con tantas páginas", TIPOS_ERROR.ARGUMENTOS_INVALIDOS)
+            }
+
+            return res.render("products", {
                 status: "success",
                 payload: products.docs,
                 totalPages: products.totalPages,
                 page: parseInt(page),
                 hasPrevPage: products.hasPrevPage,
                 hasNextPage: products.hasNextPage,
-                prevPage, nextPage, prevLink, nextLink,
-                categories, cart, user, login: req.user
+                prevPage,
+                nextPage,
+                prevLink,
+                nextLink,
+                categories: categories,
+                cart,
+                user,
+                login: req.user
             });
         } catch (error) {
-            next(error);
+            return next(error)
         }
-    }
+    };
 
     static getCartById = async (req, res, next) => {
         try {
             res.setHeader('Content-Type', 'text/html');
-            const cart = await cartService.getCartsBy({ _id: req.params.cid });
+            let cid = req.params.cid
+            let cart = await cartService.getCartsBy({ _id: cid })
 
             if (cart) {
-                res.status(200).render("cart", { cart });
+                const updatedProducts = cart.products.map(product => ({
+                    ...product,
+                    subtotal: product.product.price * product.quantity
+                }));
+
+                const totalAmount = updatedProducts.reduce((total, item) => total + item.subtotal, 0);
+
+                res.status(200).render("cart", { cart: { ...cart, products: updatedProducts }, user: req.user, totalAmount, login: req.user });
             } else {
-                CustomError.createError(
-                    "getCartById --> ViewController", 
-                    "El carrito no existe", 
-                    `No existe un carrito con el ID: ${req.params.cid}`, 
-                    TIPOS_ERROR.NOT_FOUND
-                );
+                CustomError.createError("getCartById --> ViewController", "El carrito no existe", `No existe un carrito con el ID: ${cid}`, TIPOS_ERROR.NOT_FOUND)
             }
+
         } catch (error) {
-            next(error);
+            return next(error)
         }
-    }
+    };
 
     static register = (req, res) => {
         try {
             res.setHeader('Content-Type', 'text/html');
-            res.status(200).render('register', { error: req.query.error });
+            let { error } = req.query;
+            res.status(200).render('register', { error });
         } catch (error) {
-            CustomError.createError(
-                "register --> ViewController", 
-                null, 
-                "Ocurrió un error inesperado al registrarse", 
-                TIPOS_ERROR.INTERNAL_SERVER_ERROR
-            );
+            CustomError.createError("register --> ViewController", null, "Un error inesperado ocurrió al registrarse", TIPOS_ERROR.INTERNAL_SERVER_ERROR);
         }
-    }
+    };
+
 
     static login = (req, res) => {
         try {
             res.setHeader('Content-Type', 'text/html');
-            res.status(200).render('login', { 
-                error: req.query.error, 
-                message: req.query.message, 
-                login: req.user 
-            });
+            let { error, message } = req.query
+            res.status(200).render('login', { error, message, login: req.user })
         } catch (error) {
-            CustomError.createError(
-                "login --> ViewController", 
-                null, 
-                "Ocurrió un error inesperado al iniciar sesión", 
-                TIPOS_ERROR.INTERNAL_SERVER_ERROR
-            );
+            CustomError.createError("login --> ViewController", null, "Un error inesperado ocurrió al iniciar sesión", TIPOS_ERROR.INTERNAL_SERVER_ERROR);
         }
-    }
+    };
 
     static getProfile = (req, res) => {
         try {
-            const user = req.user;
-            const documentsJson = JSON.stringify(user);
+            const documentsJson = JSON.stringify(req.user);
+            const user = req.user
+            let cart = { _id: req.user.cart }
 
             res.setHeader('Content-Type', 'text/html');
-            res.status(200).render('profile', { 
-                user, 
-                documentsJson, 
-                documents: user.documents, 
-                login: req.user 
-            });
+            res.status(200).render('profile', { user, documentsJson, documents: user.documents, login: req.user, cart })
         } catch (error) {
-            CustomError.createError(
-                "getProfile --> ViewController", 
-                null, 
-                "Ocurrió un error inesperado al cargar su perfil", 
-                TIPOS_ERROR.INTERNAL_SERVER_ERROR
-            );
+            CustomError.createError("getProfile --> ViewController", null, "Un error inesperado ocurrió al cargar su perfil", TIPOS_ERROR.INTERNAL_SERVER_ERROR);
         }
-    }
+    };
 
     static forgotPassword = (req, res) => {
         try {
-            res.setHeader("Content-Type", "text/html");
-            res.status(200).render("forgotPassword");
+            let cart = { _id: req.user.cart }
+            res.setHeader("Content-Type", "text/html")
+            res.status(200).render("forgotPassword", { user: req.user, login: req.user, cart })
         } catch (error) {
-            CustomError.createError(
-                "forgotPassword --> ViewController", 
-                null, 
-                "Ocurrió un error inesperado al cargar el perfil", 
-                TIPOS_ERROR.INTERNAL_SERVER_ERROR
-            );
+            CustomError.createError("forgotPassword --> ViewController", null, "Un error inesperado ocurrió al cargar su perfil", TIPOS_ERROR.INTERNAL_SERVER_ERROR);
         }
-    }
+    };
 
     static generateNewPassword = (req, res) => {
-        const { token } = req.params;
+        let token = req.params.token
+        let decoded
         try {
-            const decoded = jwt.verify(token, SECRET);
-            res.setHeader("Content-Type", "text/html");
-            res.status(200).render("generateNewPassword", { token });
+            decoded = jwt.verify(token, SECRET);
         } catch (err) {
-            const message = err.name === 'TokenExpiredError' 
-                ? "El token ha expirado. Por favor, solicite uno nuevo."
-                : "El token no es válido. Por favor, intente de nuevo.";
-            res.status(400).render("login", { message });
+            if (err.name === 'TokenExpiredError') {
+                console.error('El token ha expirado.');
+            } else if (err.name === 'JsonWebTokenError') {
+                console.error('El token no es válido.');
+            } else {
+                console.error('Error al verificar el token:', err);
+            }
+            return res.status(400).render("login", { message: "El token ha expirado o es inválido, por favor intente de nuevo." });
         }
-    }
 
-    static buildSearchQuery = (query) => {
-        const searchQuery = {};
-        if (query.category) searchQuery.category = query.category;
-        if (query.title) searchQuery.title = { $regex: query.title, $options: "i" };
-        if (query.stock && !isNaN(parseInt(query.stock))) searchQuery.stock = parseInt(query.stock);
-        return searchQuery;
-    }
+        if (decoded) {
+            res.setHeader("Content-Type", "text/html");
+            return res.status(200).render("generateNewPassword", { token: token });
+        } else {
+            res.setHeader("Content-Type", "text/html");
+            res.status(200).render("login", { message: "El token ha expirado o es incorrecto, por favor intente de nuevo." });
+        }
+    };
 
-    static buildLinks = (req, products, sort) => {
-        const { prevPage, nextPage } = products;
-        const baseUrl = req.originalUrl.split("?")[0];
-        const sortParam = sort ? `&sort=${sort}` : "";
-        const prevLink = prevPage ? `${baseUrl}?page=${prevPage}${sortParam}` : null;
-        const nextLink = nextPage ? `${baseUrl}?page=${nextPage}${sortParam}` : null;
-        return { prevPage, nextPage, prevLink, nextLink };
-    }
+    static purchase = async (req, res, next) => {
+        try {
+            if (!req.user || !req.user.cart) {
+                return next(CustomError.createError("purchase --> viewController", "El carrito no existe", `No existe un carrito con el ID: ${cartId}`, TIPOS_ERROR.NOT_FOUND));
+            }
 
-    static handleInvalidPage = (req, res, page, totalPages = 1) => {
-        CustomError.createError(
-            "getProductsPaginate --> ViewController",
-            `Page value '${page}' is invalid`,
-            "El número de página es inválido",
-            TIPOS_ERROR.ARGUMENTOS_INVALIDOS
-        );
-        return res.redirect(`${req.originalUrl.split("?")[0]}?page=1`);
-    }
-}
+            let cart = { _id: req.user.cart }
+            const cartId = req.user.cart;
+            const result = await processPurchase(cartId, req.user.email);
+
+            const purchaseData = {
+                ticketId: result.ticket._id,
+                amount: result.ticket.amount,
+                purchaser: result.ticket.purchaser,
+                productosProcesados: result.productosParaFacturar,
+                productosNoProcesados: result.productosRestantes,
+                cartId: cartId
+            };
+
+            return res.render("purchase", {
+                payload: purchaseData,
+                processedAmount: result.totalAmount,
+                notProcessedAmount: result.productosRestantes.reduce((total, item) => total + (item.product.price * item.quantity), 0),
+                user: req.user,
+                login: req.user,
+                cart
+            });
+        } catch (error) {
+            return next(error);
+        }
+    };
+
+    static adminPanel = async (req, res) => {
+        const userId = req.user._id;
+        const user = req.user;
+        let cart = { _id: req.user.cart };
+        const users = await userService.getAllUser();
+
+        res.render('adminPanel', { body: 'adminPanel', isAdminPanel: true, user, users, userId, login: req.user, cart, isAdmin: user.rol === 'admin' });
+    };
+};

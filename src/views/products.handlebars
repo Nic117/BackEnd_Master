@@ -1,69 +1,69 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Productos</title>
-    <link rel="stylesheet" type="text/css" href="../public/assets/css/styles.css">
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-</head>
-<body>
-   <h2>Productos</h2>
-   <hr><br>{{>menu}}<br>
+{{>menu}}
 
-   {{#if user}}
-       <p><strong>Bienvenido: {{user.first_name}}</strong></p>
-   {{/if}}
-  <h3>Categoría</h3> 
+<!-- Barra superior con el nombre "Tienda Nicsoft" -->
+<nav class="navbar navbar-expand-lg" style="background-color: #00cccc;">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="/" style="color: white; font-weight: bold; font-size: 24px;">Tienda Nicsoft</a>
+        {{#if user}}
+        <h2><strong style="color: white;">Hola {{user.first_name}}</strong></h2>
+        {{/if}}
+    </div>
+</nav>
 
- <div>
-    <select id="categorySelect">
-        <option value="/products">Todos</option>
-        {{#each categories}}
-        <option style="text-transform: capitalize" value="/products?category={{this}}">{{this}}</option>
-        {{/each}}
-    </select>
+<!-- Contenido principal -->
+<div class="container my-4">
+    <!-- Filtros de categorías y orden -->
+    <div class="d-flex justify-content-between">
+        <select class="form-select col-md-5" id="categorySelect" style="background-color: #f0f0f0; border-radius: 8px;">
+            <option value="/products">Todos</option>
+            {{#each categories}}
+            <option style="text-transform: capitalize;" value="/products?category={{this}}">{{this}}</option>
+            {{/each}}
+        </select>
+
+        <input type="text" value="{{cart._id}}" hidden id="cart">
+
+        <select class="form-select col-md-5" id="sortSelect" style="background-color: #f0f0f0; border-radius: 8px;">
+            <option selected disabled>Ordenar</option>
+            <option value="asc">Precio: Menor a Mayor</option>
+            <option value="desc">Precio: Mayor a Menor</option>
+        </select>
+    </div>
+
+    <!-- Listado de productos -->
+    <ul id="prod" class="my-4">
+        <div class="row">
+            {{#each payload}}
+            <div class="col-md-3 g-4">
+                <div class="card text-center" style="border: none; background-color: #e6f7f7;">
+                    <div class="card-body">
+                        <h5 class="card-title">{{title}}</h5>
+                        <p style="text-transform: capitalize" class="card-text"><strong>{{category}}</strong></p>
+                        <img class="card-img-top mb-3" style="max-width: 100%;" src="{{thumbnail}}" alt="{{title}}">
+                        <div class="description-box mb-2">
+                            <p class="card-text">{{description}}</p>
+                        </div>
+                        <p class="card-text"><strong>$ {{price}}</strong></p>
+                    </div>
+                    <button class="btn btn-primary" onclick="comprar('{{_id}}')" style="background-color: #007bff; border: none;">Añadir al carrito</button>
+                </div>
+            </div>
+            {{/each}}
+        </div>
+    </ul>
+
+    <!-- Paginación -->
+    <div class="pagination-container text-center my-4">
+        <a href="/products?page=1" class="btn btn-light">Pág. 1</a>
+        {{#if hasPrevPage}}
+        <a href="{{prevLink}}" class="btn btn-light">Ant.</a>
+        {{/if}}
+        {{#if hasNextPage}}
+        <a href="{{nextLink}}" class="btn btn-light">Sig.</a>
+        {{/if}}
+        <a href="/products?page={{totalPages}}" class="btn btn-light">Última Pág.</a>
+        <h3>Página {{page}} / {{totalPages}}</h3>
+    </div>
 </div>
 
-   <input type="text" value="{{cart._id}}" hidden id="cart">
-
-   <div>
-       <select id="sortSelect">
-           <option selected disabled>Ordenar</option>
-           <option value="asc">Precio: Menor a Mayor</option>
-           <option value="desc">Precio: Mayor a Menor</option>
-       </select>
-   </div>
-
-   <div class="productos-container">
-       {{#each payload}}
-       <div class="producto">
-           <h3>{{title}}</h3>
-           <p>{{category}}</p>
-           <img src="{{thumbnails.[0]}}" alt="{{title}}">
-           <p>{{description}}</p>
-           <strong> ${{price}} </strong> <br><br>
-           <button class="agregar-carrito-btn" onclick="comprar('{{_id}}')">Añadir al carrito</button>
-           <button class="agregar-carrito-btn" onclick="comprar('{{_id}}')">Comprar</button>
-       </div>
-       {{/each}}
-   </div>
-   <br><br>
-
-   <a href="/products?page=1">Pág. 1</a>
-   {{#if hasPrevPage}}
-   <a href="{{prevLink}}">Ant.</a>
-   {{/if}}
-
-   {{#if hasNextPage}}
-   <a href="{{nextLink}}">Sig.</a>
-   {{/if}}
-   <a href="/products?page={{totalPages}}">Última Pág.</a>
-   <h3> Página {{page}} / {{totalPages}}</h3>
-   <a href="/carts/{{cart._id}}">Ver carrito</a>
-
-   <script src="/assets/js/products.js"></script>
-
-   <div id="productoAgregadoMensaje" class="mensaje">Producto agregado</div>
-</body>
-</html>
+<script src="/assets/js/products.js"></script>

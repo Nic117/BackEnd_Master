@@ -1,10 +1,41 @@
-<h2>Chat con Websockets</h2>
-<hr>
-<input type="text" id="mensaje">
-<div id="mensajes"></div>
+{{>menu}}<br>
+<div class="mx-auto my-2 text-center border-2">
+    <h1>Chat con WebSockets</h1>
+</div>
 
-<br><br>
-<a href="/">Inicio</a>
+<div class="d-block d-sm-none d-flex mb-3 justify-content-between mx-3">
+    <button class="btn btn-effect btn-jif btn-detalles" onclick="joinChat()">Ingresar al Chat</button>
+    <button class="btn btn-effect btn-jif btn-detalles" onclick="leaveChat()">Salir del Chat</button>
+</div>
+
+<div class="container-mio">
+    <aside class="d-none d-sm-block" style="width: 20%;">
+        <h3 class="m-2 text-center text-white">Usuarios online</h3>
+        <hr />
+        <ul class="list-group list-group-flush m-2" id="usersDB"></ul>
+        <div style="text-align: -webkit-center;">
+            <button class="btn btn-effect btn-jif btn-detalles" id="joinButton">Ingresar al
+                Chat</button>
+            <input type="hidden" id="user-email" value="{{ user.email }}">
+            <button class="btn btn-effect btn-jif btn-detalles" id="leaveButton"
+                style="display: none;">Salir del Chat</button>
+        </div>
+    </aside>
+    <main class="container py-3" style="font-size: 18px;">
+        <section id="chat-container" class="rounded">
+            <div id="messages-history" class="bg-chat mb-3">
+
+            </div>
+            <div id="form" class="flexForm" style="flex-wrap: nowrap;">
+                <input id="chat-message" class="form-control me-2" type="text"
+                    placeholder="Escribe tu mensaje aquí..." />
+                <button id="send-button" class="btn" type="button"><i
+                        class="fas fa-paper-plane"></i>Enviar</button>
+            </div>
+        </section>
+    </main>
+</div>
+
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="/socket.io/socket.io.js"></script>

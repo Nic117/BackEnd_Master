@@ -20,7 +20,7 @@ components:
           type: array
           items:
             type: string
-          description: URL de las imágenes del producto
+          description: Url del producto
         code:
           type: string
           description: Código único del producto
@@ -29,32 +29,32 @@ components:
           description: Stock disponible
         category:
           type: string
-          description: Categoría del producto (iPhone, MacBook, iPad)
+          description: Categoría del producto
         owner:
           type: string
           description: Propietario del producto
         status:
           type: boolean
-          description: Estado del producto (activo o inactivo)
+          description: Estado del producto
         __v: 
           type: string
           description: Versión del documento en MongoDB
         createdAt:  
           type: date-time
-          description: Fecha de creación del producto
+          description: Momento en el que fue creado
         updatedAt:
           type: date-time
-          description: Última actualización del producto
+          description: Momento en el que fue actualizado
       example:
         _id: "6635a4359a91d1aaa6e1fb62"
-        title: "iPhone 14 Pro Max"
-        description: "El iPhone 14 Pro Max cuenta con una pantalla Super Retina XDR de 6.7 pulgadas, chip A16 Bionic, triple cámara con tecnología ProRAW y ProRes, y 5G. Disponible en colores exclusivos como el morado profundo y dorado."
-        price: 145000
-        thumbnail: ["https://www.apple.com/iphone-14-pro-max.jpg"]
-        code: "IPH14PMX"
-        stock: 10
-        category: "iPhone"
-        owner: "admin"
+        title: "Mouse Logitech G305 Lightspeed Inalambrico"
+        description: "Para trabajar desde casa con la computadora o aprovechar los momentos de ocio, necesitás comodidad y facilidad de movimiento. Con tu Logitech G Lightspeed encontrá eso que buscás en un solo aparato con la mejor tecnología. Adaptado a tus movimientos: Su diseño eficaz hace de este mouse un elemento cómodo, con una gran experiencia de uso para aquellas personas que buscan seguridad en cada click. La funcionalidad al alcance de tu mano: El sistema de detección de movimiento óptico te permitirá mover el cursor de una manera más precisa y sensible que en los sistemas tradicionales. Plug And Play: Solo debés colocar el receptor en un puerto USB de la computadora y ya podés empezar a usarlo. No hace falta emparejar el mouse ni descargar software para utilizarlo. Tecnología inalámbrica: Trabajá de forma inalámbrica y movete libremente sin ninguna interrupción. Al no haber cables, tu escritorio se mantiene despejado. Y además, podés llevar tu mouse fácilmente de un espacio de trabajo a otro. Apto para fácil traslado: Navegá rápidamente por documentos y páginas web gracias su diseño ultra delgado, ergonómico, liviano y conveniente para llevar a donde quieras o viajar."
+        price: 57807
+        thumbnail: ["https://www.compugarden.com.ar/Temp/App_WebSite/App_PictureFiles/Items/910-005281_800.jpg"]
+        code: "26"
+        stock: 7
+        category: "mouses"
+        owner: admin
         status: true
         __v: 0
         createdAt: "2024-05-04T02:57:57.213Z"
@@ -65,7 +65,7 @@ components:
       properties:
         title:
           type: string
-          description: Nombre del producto
+          description: Título del producto
         description:
           type: string
           description: Descripción del producto
@@ -82,10 +82,10 @@ components:
           description: Código del producto
         stock:
           type: number
-          description: Stock disponible del producto
+          description: Stock del producto
         category:
           type: string
-          description: Categoría del producto (iPhone, MacBook, iPad)
+          description: Categoría del producto
         status:
           type: boolean
           description: Estado del producto
@@ -93,15 +93,16 @@ components:
           type: string
           description: Propietario del producto
       example:
+        example:
         _id: "6635a4359a91d1aaa6e1fb62"
-        title: "MacBook Pro M1"
-        description: "La MacBook Pro con chip M1 ofrece un rendimiento sin precedentes en edición de video, diseño gráfico y programación. Pantalla Retina de 13 pulgadas, hasta 20 horas de batería y un sistema de enfriamiento avanzado."
-        price: 250000
-        thumbnail: ["https://www.apple.com/macbook-pro-m1.jpg"]
-        code: "MACPM1"
-        stock: 15
-        category: "MacBook"
-        owner: "admin"
+        title: "Mouse Logitech G305 Lightspeed Inalambrico"
+        description: "Para trabajar desde casa con la computadora o aprovechar los momentos de ocio, necesitás comodidad y facilidad de movimiento. Adaptado a tus movimientos: Su diseño eficaz hace de este mouse un elemento cómodo, con una gran experiencia de uso para aquellas personas que buscan seguridad en cada click. Apto para fácil traslado: Navegá rápidamente por documentos y páginas web gracias su diseño ultra delgado, ergonómico, liviano y conveniente para llevar a donde quieras o viajar."
+        price: 57807
+        thumbnail: ["https://www.compugarden.com.ar/Temp/App_WebSite/App_PictureFiles/Items/910-005281_800.jpg"]
+        code: "26"
+        stock: 213
+        category: "mouses"
+        owner: admin
         status: true
         __v: 0
         createdAt: "2024-05-04T02:57:57.213Z"
@@ -122,28 +123,28 @@ components:
           description: Versión del documento en MongoDB
         createdAt:  
           type: date-time
-          description: Fecha de creación del carrito
+          description: Momento en el que fue creado
         updatedAt:
           type: date-time
-          description: Fecha de última actualización del carrito
+          description: Momento en el que fue actualizado
       example:
         _id: 66352f1c2ffc6c230910172b
         products:
           - product:
               _id: 6635a4359a91d1aaa6e1fb4a
               status: true
-              title: "iPad Pro 12.9'' 2024"
-              description: "El iPad Pro de 12.9 pulgadas incluye una pantalla Liquid Retina XDR, procesador M2, y soporte para Apple Pencil 2, haciendo de este dispositivo una potente herramienta de productividad y creatividad."
-              price: 180000
-              thumbnail: [https://www.apple.com/ipad-pro.jpg]
-              code: "IPADPRO12"
-              stock: 5
-              category: "iPad"
-              owner: "admin"
+              title: HD HDD 2TB SEAGATE SKYHAWK SATA III 3.5'
+              description: Disfruta de una velocidad y rendimiento de nueva generación con nuestra biblioteca digital más grande hasta la fecha. Disfruta de mundos más dinámicos y tiempos de carga más rápidos, y agrega Xbox Game Pass Ultimate (la suscripción se vende por separado) para jugar a títulos nuevos el mismo día de su lanzamiento. Además, disfruta de cientos de juegos de alta calidad, como Minecraft, Forza Horizon 5 y Halo Infinite, con amigos en consola, PC y la nube.
+              price: 119870
+              thumbnail: [https://www.fullh4rd.com.ar/thumbnail/productos/12/hd-hdd-2tb-seagate-skyhawk-sata-iii-35-0.jpg]
+              code: 2
+              stock: 14
+              category: discosrigidos
+              owner: admin
               __v: 0
-              createdAt: "2024-05-04T02:57:57.212Z"
-              updatedAt: "2024-05-04T02:57:57.212Z"
-            quantity: 2
+              createdAt: 2024-05-04T02:57:57.212Z
+              updatedAt: 2024-05-04T02:57:57.212Z
+            quantity: 11
             _id: 663bd849ea339a4f825d19c6
         createdAt: 2024-05-03T18:38:20.276Z
         updatedAt: 2024-05-08T20:19:25.722Z
@@ -154,12 +155,12 @@ components:
       properties:
         product:
           $ref: "#/components/schemas/Product"
-        quantity:
-          type: number
-          description: Cantidad de unidades del producto en el carrito
-        _id:
-          type: string
-          description: ID de MongoDB
+          quantity:
+            type: number
+            description: Cantidad de unidades del producto en carrito
+          _id:
+            type: string
+            description: ID de MongoDB
     
     Ticket:
       type: object
@@ -169,14 +170,14 @@ components:
           description: ID de MongoDB
         code:
           type: string
-          description: Código de la orden de compra
+          description: Código de la orden
         purchase_datetime:
           type: string
-          description: Fecha de la compra
+          description: Fecha de la orden
           format: date-time
         amount:
           type: number
-          description: Monto total de la compra
+          description: Monto de la orden
         purchaser:
           type: string
           description: Email del comprador
@@ -188,12 +189,12 @@ components:
         _id: "66aadd93047a2105f378bfc5"
         code: "T-1722473875445-cs7mbya"
         purchaseDateTime: "2024-08-01T00:57:55.445Z"
-        amount: 310000
-        purchaser: "juanperez@icloud.com"
+        amount: 31000
+        purchaser: "memeperez@test.com"
         products:
           - _id: "660725f2d49ab55bf9c00da3"
-            quantity: 1
-            name: "MacBook Air M2"
+            quantity: 2
+            name: "Campera chopera"
 
     TicketProducts:
       type: object
@@ -203,7 +204,7 @@ components:
           description: ID de MongoDB
         quantity:
           type: number
-          description: Cantidad de unidades del producto en el ticket
+          description: Unidades del producto en el ticket
         title:
           type: string
           description: Nombre del producto en el ticket
@@ -232,7 +233,7 @@ components:
           example: "UNAUTHORIZED_ERROR"
         message:
           type: string
-          example: "No se pudo autenticar al usuario"
+          example: "No se pudo autenticar el usuario"
 
     response403:
       type: object
@@ -254,16 +255,17 @@ components:
           type: string
           example: "Producto con ID {pid} no encontrado / Carrito con ID {cid} no encontrado"
 
-    response500:
-      type: object
-      properties:
-        code:
-          type: string
-          example: "INTERNAL_SERVER_ERROR"
-        message:
-          type: string
-          example: "Error interno del servidor"
+      response500:
+        type: object
+        properties:
+          code:
+            type: string
+            example: "INTERNAL_SERVER_ERROR"
+          message:
+            type: string
+            example: "Error interno del servidor"
       
+
   securitySchemes:
     cookieAuth:
       type: apiKey

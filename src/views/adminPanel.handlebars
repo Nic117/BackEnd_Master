@@ -1,0 +1,38 @@
+{{>menu}}
+<div class="container" id="adminContainer">
+        <div class="text-center border-2 text-uppercase" id="header">
+            <h1>Panel de administración</h1>
+        </div>
+        <div class="container" style="width:75%">
+            <div class="d-flex justify-content-between mb-3" id="controls">
+                <input class="form-control" id="searchInput" type="text" placeholder="Filtrar por email o ID...">
+                <button class="btn btn-dark" id="deleteInactiveUsers">
+                    Eliminar usuarios inactivos
+                </button>
+            </div>
+            <div class="d-flex justify-content-center mb-3">
+                <table id="userTable">
+                    <thead>
+                        <tr>
+                            <th scope="col">Nombre</th>
+                            <th scope="col">Email</th>
+                            <th scope="col">ID de usuario</th>
+                            <th scope="col">Rol</th>
+                            <th scope="col">Última Conexión</th>
+                            <th style="text-align: center;" scope="col">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="userTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+        <div id="loadingSpinner" class="spinner" style="display: none;">
+            <div class="spinner-border" role="status">
+                <span class="visually-hidden">Cargando...</span>
+            </div>
+        </div>
+    </div>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="/assets/js/admin-panelScript.js"></script>

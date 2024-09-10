@@ -1,13 +1,32 @@
-<h2>Registro:</h2>
-<hr><br>{{>menu}}<br><br>
-<form action="/api/sessions/register" method="post">
-    <input type="text" name="first_name" placeholder="Nombre">
-    <input type="text" name="last_name" placeholder="Apellido">
-    <input type="text" name="age" placeholder="Edad">
-    <input type="email" name="email" placeholder="Correo electronico">
-    <input type="password" name="password" placeholder="Constraseña">
-    <input type="text" name="web" value="web" hidden>
-    <br><br>
-    <input type="submit" value="register">
+<link rel="stylesheet" href="/assets/css/styles.css">
 
-</form>
+<div class="container container1">
+    <div class="row justify-content-center register-container">
+        <div class="col-md-6 p-0">
+            <div class="card">
+                <div class="box">
+                    <div class="form-snip">
+                        <div class="user-form">
+                            <form id="registerForm" action="/api/sessions/register" method="post">
+                                <br>
+                                <label>Nombre</label>
+                                <input type="text" name="first_name" placeholder="Ingrese su nombre">
+                                <label>Apellido</label>
+                                <input type="text" name="last_name" placeholder="Ingrese su apellido">
+                                <label>Edad</label>
+                                <input type="text" name="age" placeholder="Ingrese su edad">
+                                <label>Email</label>
+                                <input type="email" name="email" placeholder="Ingrese su correo electronico">
+                                <label>Contraseña</label>
+                                <input type="password" name="password" placeholder="Ingrese su constraseña">
+                                <input type="text" name="web" value="web" hidden>
+                                <br>
+                                <button type="submit" class="btn btn-warning mt-3 mb-3">Registrarse</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

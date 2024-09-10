@@ -1,57 +1,52 @@
 import mongoose from "mongoose";
 
 const ticketsCollection = "tickets";
-
-
 const ticketSchema = new mongoose.Schema(
     {
         code: {
             type: String,
-            required: true,
-            unique: true, 
+            required: true
         },
         purchase_datetime: {
             type: Date,
-            default: Date.now,
+            default: Date.now
         },
         amount: {
             type: Number,
-            required: true,
+            required: true
         },
         purchaser: {
             type: String,
-            required: true,
+            required: true
         },
         products: [
             {
                 _id: {
                     type: mongoose.Schema.Types.ObjectId,
-                    ref: "products", 
-                    required: true,
+                    ref: "products"
                 },
                 quantity: {
                     type: Number,
-                    required: true,
+                    required: true
                 },
                 title: {
                     type: String,
-                    required: true,
+                    required: true
                 },
                 price: {
                     type: Number,
-                    required: true,
+                    required: true
                 },
                 subtotal: {
                     type: Number,
-                    required: true,
-                },
-            },
-        ],
+                    required: true
+                }
+            }
+        ]
     },
     {
-        timestamps: true, 
+        timestamps: true
     }
-);
-
+)
 
 export const ticketModelo = mongoose.model(ticketsCollection, ticketSchema);
