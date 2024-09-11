@@ -15,3 +15,34 @@
 {"level":"error","message":"[ Tue, 10 Sep 2024 23:52:40 GMT ] [Faltan documentos requeridos] Error en userPremium --> UserController: Faltan documentos requeridos: ID,adress,statement, TIPOS_ERROR.ARGUMENTOS_INVALIDOS","timestamp":"2024-09-10T23:52:40.237Z"}
 {"level":"error","message":"Error al eliminar usuario","timestamp":"2024-09-10T23:55:49.107Z"}
 {"level":"error","message":"Invalid login: 535-5.7.8 Username and Password not accepted. For more information, go to\n535 5.7.8  https://support.google.com/mail/?p=BadCredentials d9443c01a7336-20710ee1ecesm53358305ad.181 - gsmtp","timestamp":"2024-09-10T23:55:50.099Z"}
+{"level":"error","message":"Invalid login: 535-5.7.8 Username and Password not accepted. For more information, go to\n535 5.7.8  https://support.google.com/mail/?p=BadCredentials d2e1a72fcca58-719090923b8sm1884922b3a.117 - gsmtp","timestamp":"2024-09-10T23:57:40.739Z"}
+{"level":"error","message":"Invalid login: 535-5.7.8 Username and Password not accepted. For more information, go to\n535 5.7.8  https://support.google.com/mail/?p=BadCredentials d2e1a72fcca58-719090d469bsm1884155b3a.210 - gsmtp","timestamp":"2024-09-10T23:58:33.615Z"}
+{"level":"error","message":"Invalid login: 535-5.7.8 Username and Password not accepted. For more information, go to\n535 5.7.8  https://support.google.com/mail/?p=BadCredentials 98e67ed59e1d1-2dadc009f91sm9171191a91.16 - gsmtp","timestamp":"2024-09-11T00:02:40.879Z"}
+{"level":"error","message":"Invalid login: 535-5.7.8 Username and Password not accepted. For more information, go to\n535 5.7.8  https://support.google.com/mail/?p=BadCredentials 98e67ed59e1d1-2dadc03a216sm9147052a91.24 - gsmtp","timestamp":"2024-09-11T00:03:01.596Z"}
+{"level":"error","message":"Invalid login: 535-5.7.8 Username and Password not accepted. For more information, go to\n535 5.7.8  https://support.google.com/mail/?p=BadCredentials d9443c01a7336-20710e34f7esm53692785ad.115 - gsmtp","timestamp":"2024-09-11T00:04:57.343Z"}
+{"level":"error","message":"Invalid login: 535-5.7.8 Username and Password not accepted. For more information, go to\n535 5.7.8  https://support.google.com/mail/?p=BadCredentials d2e1a72fcca58-719090b1ab4sm1889817b3a.169 - gsmtp","timestamp":"2024-09-11T00:05:05.875Z"}
+{"level":"error","message":"Invalid login: 535-5.7.8 Username and Password not accepted. For more information, go to\n535 5.7.8  https://support.google.com/mail/?p=BadCredentials 98e67ed59e1d1-2db0413688bsm7060012a91.4 - gsmtp","timestamp":"2024-09-11T00:12:34.529Z"}
+{"level":"error","message":"Invalid login: 535-5.7.8 Username and Password not accepted. For more information, go to\n535 5.7.8  https://support.google.com/mail/?p=BadCredentials d2e1a72fcca58-719090b0522sm1901214b3a.157 - gsmtp","timestamp":"2024-09-11T00:18:29.612Z"}
+{"level":"error","message":"Invalid login: 535-5.7.8 Username and Password not accepted. For more information, go to\n535 5.7.8  https://support.google.com/mail/?p=BadCredentials d9443c01a7336-20710e18fb4sm53341705ad.24 - gsmtp","timestamp":"2024-09-11T00:19:56.069Z"}
+{"level":"error","message":"Invalid login: 535-5.7.8 Username and Password not accepted. For more information, go to\n535 5.7.8  https://support.google.com/mail/?p=BadCredentials d9443c01a7336-20710f381e2sm53650245ad.293 - gsmtp","timestamp":"2024-09-11T00:20:23.534Z"}
+{"level":"error","message":"Invalid login: 535-5.7.8 Username and Password not accepted. For more information, go to\n535 5.7.8  https://support.google.com/mail/?p=BadCredentials d9443c01a7336-20710f1d663sm53593125ad.188 - gsmtp","timestamp":"2024-09-11T00:23:13.607Z"}
+{"level":"error","message":"Invalid login: 535-5.7.8 Username and Password not accepted. For more information, go to\n535 5.7.8  https://support.google.com/mail/?p=BadCredentials d2e1a72fcca58-71908fca294sm1908729b3a.27 - gsmtp","timestamp":"2024-09-11T00:23:25.165Z"}
+{"level":"error","message":"Invalid login: 535-5.7.8 Username and Password not accepted. For more information, go to\n535 5.7.8  https://support.google.com/mail/?p=BadCredentials d2e1a72fcca58-7190909235csm1914574b3a.134 - gsmtp","timestamp":"2024-09-11T00:23:39.268Z"}
+{"level":"error","message":"Invalid login: 535-5.7.8 Username and Password not accepted. For more information, go to\n535 5.7.8  https://support.google.com/mail/?p=BadCredentials d9443c01a7336-20710e123d1sm53794885ad.53 - gsmtp","timestamp":"2024-09-11T00:24:10.030Z"}
+{"level":"error","message":"Invalid login: 535-5.7.8 Username and Password not accepted. For more information, go to\n535 5.7.8  https://support.google.com/mail/?p=BadCredentials d2e1a72fcca58-71908fc8459sm1909126b3a.24 - gsmtp","timestamp":"2024-09-11T00:26:10.607Z"}
+{"level":"error","message":"Missing credentials for \"PLAIN\"","timestamp":"2024-09-11T00:32:54.577Z"}
+{"level":"error","message":"Missing credentials for \"PLAIN\"","timestamp":"2024-09-11T00:33:02.388Z"}
+{"level":"error","message":"Missing credentials for \"PLAIN\"","timestamp":"2024-09-11T00:34:30.480Z"}
+{"level":"error","message":"Missing credentials for \"PLAIN\"","timestamp":"2024-09-11T00:34:43.350Z"}
+{"level":"error","message":"Missing credentials for \"PLAIN\"","timestamp":"2024-09-11T00:36:45.740Z"}
+{"level":"error","message":"Missing credentials for \"PLAIN\"","timestamp":"2024-09-11T00:36:54.914Z"}
+{"level":"error","message":"Missing credentials for \"PLAIN\"","timestamp":"2024-09-11T00:39:54.777Z"}
+{"level":"error","message":"Missing credentials for \"PLAIN\"","timestamp":"2024-09-11T00:40:02.101Z"}
+{"level":"error","message":"Missing credentials for \"PLAIN\"","timestamp":"2024-09-11T00:45:58.175Z"}
+{"level":"error","message":"Missing credentials for \"PLAIN\"","timestamp":"2024-09-11T00:46:18.519Z"}
+{"level":"error","message":"Missing credentials for \"PLAIN\"","timestamp":"2024-09-11T00:55:06.051Z"}
+{"level":"error","message":"Missing credentials for \"PLAIN\"","timestamp":"2024-09-11T00:56:47.147Z"}
+{"level":"error","message":"Missing credentials for \"PLAIN\"","timestamp":"2024-09-11T01:01:07.443Z"}
+{"level":"error","message":"Missing credentials for \"PLAIN\"","timestamp":"2024-09-11T01:04:31.751Z"}
+{"level":"error","message":"listen EADDRINUSE: address already in use :::8080","timestamp":"2024-09-11T01:09:26.662Z"}
+{"level":"error","message":"Missing credentials for \"PLAIN\"","timestamp":"2024-09-11T01:09:41.895Z"}
